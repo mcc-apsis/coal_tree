@@ -435,7 +435,7 @@ v_data <- rbind(v_data,
 # TODO:
 v_data <- rbind(v_data,
                 get_IEAWEBdata(u_fpath$IEAWEB, "Coal and coal products", "Total final consumption", 
-                               "E_CC", "Mt/yr", "Coal consumption", "IEA2016 - WEB", countries))
+                               "E_CC", "GJ/yr", "Coal consumption", "IEA2016 - WEB", countries))
 
 
 #-- Coal production -------------------------
@@ -657,7 +657,7 @@ v_data <- rbind(v_data,
 # TODO:
 v_data <- rbind(v_data,
                 get_IEAWEBdata(u_fpath$IEAWEB, "Geothermal", "Total final consumption", 
-                               "E_GC", "Mt/yr", "Geothermal consumption", "IEA2016 - WEB", countries))
+                               "E_GeoC", "Mt/yr", "Geothermal consumption", "IEA2016 - WEB", countries))
 
 #-- Solar/wind/other consumption -------------------------
 # Source: IEA WEB 2016
@@ -757,7 +757,7 @@ p_data <- p_data %>%
   mutate(variable = ifelse(variable == "lex_WB", "LEx", variable)) %>% 
   mutate(longname = ifelse(variable == "gini_WB", "GINI index (World Bank estimate)", longname)) %>% 
   mutate(source   = ifelse(variable == "gini_WB", "World Bank (WDI)", source)) %>% 
-  mutate(unit     = ifelse(variable == "gini_WB", "", unit)) %>%
+  mutate(unit     = ifelse(variable == "gini_WB", "Unitless", unit)) %>%
   mutate(variable = ifelse(variable == "gini_WB", "GINI", variable)) %>% 
   mutate(longname = ifelse(variable == "urban_WB", "Urban population", longname)) %>% 
   mutate(source   = ifelse(variable == "urban_WB", "World Bank (WDI)", source)) %>% 
@@ -859,13 +859,13 @@ p_data <- p_data %>%
   mutate(source   = ifelse(variable == "energy_gas_exports_IEA", "IEA", source)) %>% 
   mutate(unit     = ifelse(variable == "energy_gas_exports_IEA", "EJ/yr", unit)) %>%
   mutate(variable = ifelse(variable == "energy_gas_exports_IEA", "E_GEx", variable)) %>% 
-  mutate(longname = ifelse(variable == "ratio_ee", "Ratio of energy efficiency", longname)) %>% 
+  mutate(longname = ifelse(variable == "ratio_ee", "Ratio of final energy over primary energy", longname)) %>% 
   mutate(source   = ifelse(variable == "ratio_ee", "IEA", source)) %>% 
-  mutate(unit     = ifelse(variable == "ratio_ee", "", unit)) %>% 
+  mutate(unit     = ifelse(variable == "ratio_ee", "Unitless", unit)) %>% 
   mutate(variable = ifelse(variable == "ratio_ee", "EE", variable)) %>% 
-  mutate(longname = ifelse(variable == "ratio_ef", "Ratio of emission efficiency", longname)) %>% 
+  mutate(longname = ifelse(variable == "ratio_ef", "Ratio of Emission over primary energy", longname)) %>% 
   mutate(source   = ifelse(variable == "ratio_ef", "IEA", source)) %>% 
-  mutate(unit     = ifelse(variable == "ratio_ef", "", unit)) %>% 
+  mutate(unit     = ifelse(variable == "ratio_ef", "Tg(CO2)/GJ", unit)) %>% 
   mutate(variable = ifelse(variable == "ratio_ef", "EF", variable)) %>% 
   mutate(longname = ifelse(variable == "gdp_ppp_PWT_pc", "Gross Domestic Product per capita", longname)) %>% 
   mutate(source   = ifelse(variable == "gdp_ppp_PWT_pc", "Penn World Tables", source)) %>% 
@@ -876,21 +876,21 @@ p_data <- p_data %>%
   mutate(unit     = ifelse(variable == "co2_terr_CDIAC_pc", "Tg(CO2)/yr", unit)) %>% 
   mutate(variable = ifelse(variable == "co2_terr_CDIAC_pc", "CO2pc", variable)) %>% 
   mutate(longname = ifelse(variable == "co2_terr_GCB_pc", "CO2 emissions per capita", longname)) %>% 
-  mutate(source   = ifelse(variable == "co2_terr_GCB_pc", "GCB", source)) %>% 
+  mutate(source   = ifelse(variable == "co2_terr_GCB_pc", "GCP", source)) %>% 
   mutate(unit     = ifelse(variable == "co2_terr_GCB_pc", "Tg(CO2)/yr", unit)) %>% 
   mutate(variable = ifelse(variable == "co2_terr_GCB_pc", "CO2pc", variable)) %>%
   mutate(longname = ifelse(variable == "co2_cons_GCB_pc", "CO2 emissions from consumption per capita", longname)) %>% 
-  mutate(source   = ifelse(variable == "co2_cons_GCB_pc", "GCB", source)) %>% 
+  mutate(source   = ifelse(variable == "co2_cons_GCB_pc", "GCP", source)) %>% 
   mutate(unit     = ifelse(variable == "co2_cons_GCB_pc", "Tg(CO2)/pers/yr", unit)) %>% 
   mutate(variable = ifelse(variable == "co2_cons_GCB_pc", "CO2pc", variable)) %>%
-  mutate(longname = ifelse(variable == "energy_tpes_IEA_pc", "Consumption of total primary energy per capita", longname)) %>% 
-  mutate(source   = ifelse(variable == "energy_tpes_IEA_pc", "IEA", source)) %>% 
-  mutate(unit     = ifelse(variable == "energy_tpes_IEA_pc", "EJ/pers/yr", unit)) %>% 
-  mutate(variable = ifelse(variable == "energy_tpes_IEA_pc", "EnPripc", variable)) %>% 
-  mutate(longname = ifelse(variable == "energy_tfec_IEA_pc", "Consumption of total final energy per capita", longname)) %>% 
-  mutate(source   = ifelse(variable == "energy_tfec_IEA_pc", "IEA", source)) %>% 
-  mutate(unit     = ifelse(variable == "energy_tfec_IEA_pc", "EJ/pers/yr", unit)) %>%
-  mutate(variable = ifelse(variable == "energy_tfec_IEA_pc", "EnFinpc", variable)) %>% 
+  # mutate(longname = ifelse(variable == "energy_tpes_IEA_pc", "Consumption of total primary energy per capita", longname)) %>% 
+  # mutate(source   = ifelse(variable == "energy_tpes_IEA_pc", "IEA", source)) %>% 
+  # mutate(unit     = ifelse(variable == "energy_tpes_IEA_pc", "EJ/pers/yr", unit)) %>% 
+  # mutate(variable = ifelse(variable == "energy_tpes_IEA_pc", "EnPripc", variable)) %>% 
+  # mutate(longname = ifelse(variable == "energy_tfec_IEA_pc", "Consumption of total final energy per capita", longname)) %>% 
+  # mutate(source   = ifelse(variable == "energy_tfec_IEA_pc", "IEA", source)) %>% 
+  # mutate(unit     = ifelse(variable == "energy_tfec_IEA_pc", "EJ/pers/yr", unit)) %>%
+  # mutate(variable = ifelse(variable == "energy_tfec_IEA_pc", "EnFinpc", variable)) %>% 
   mutate(country  = paste(country)) %>% 
   select(country, year, variable, longname, source, unit, value)
 
@@ -923,6 +923,9 @@ v_data = rbind(v_data,
                            by=c("country")) %>% 
                  select(country, iso, year, variable, longname, source, unit, value))
 
+# Set all non finite values to NA
+v_data$value[which(is.nan(v_data$value))]     = NA
+v_data$value[which(!is.finite(v_data$value))] = NA
 
 p_data = v_data
 

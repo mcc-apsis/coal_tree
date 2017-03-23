@@ -1,5 +1,14 @@
+u_mode = "R"
+
 #---- Files and directories ---------
-u_pathData = "data/coal_data.RData"
+u_path = list()
+u_path$data = "data/coal_data.RData"
+u_path$func = "functions"
+
+
+#---- Default parameters ------------
+u_period = c(1960, 2014)
+u_perCap_vars = c("GDP")
 
 #---- Variable selection ------------
 u_select_var <- function(i_data) {
@@ -27,7 +36,7 @@ u_select_var <- function(i_data) {
   filter(!(variable == "Elec_C" & source != "IEA2016 - WEB")) %>%
   filter(!(variable == "GDP"    & source != "Penn World Tables")) %>%
   filter(!(variable == "GINI"   & source != "SWIID")) %>%
-  filter(!(variable == "CO2"    & source != "CDIAC" & longname == "CO2 emissions")) %>%
-  select(iso, year, variable, value)
+  filter(!(variable == "CO2"    & source != "CDIAC" & longname == "CO2 emissions"))
+  
   return(out)
 }
