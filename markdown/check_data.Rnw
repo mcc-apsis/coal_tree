@@ -1,0 +1,30 @@
+\documentclass{article}
+\usepackage{graphicx, color, framed, alltt}
+
+\begin{document}
+
+<<label="init", echo=FALSE, results='hide'>>=
+source("scripts/user_settings.R")
+source("scripts/init.R")
+library(knitr)
+library(xtable)
+library(pander)
+v_data <- u_select_var(p_data)
+@
+
+\section{Descriptive statistics}
+
+<<label="table", echo=FALSE, results='asis'>>=
+summary(v_data)
+
+tab <- xtable(summary(out)$coef, digits=c(0, 2, 2, 1, 2))
+print(tab, type="latex")
+
+@
+
+
+\section{Statistical tests}
+\subsection{Hausman test}
+
+
+\end{document}
