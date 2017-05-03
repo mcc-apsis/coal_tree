@@ -1,0 +1,303 @@
+\documentclass{article}\usepackage[]{graphicx}\usepackage[]{color}
+%% maxwidth is the original width if it is less than linewidth
+%% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\makeatletter
+\def\maxwidth{ %
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+
+\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
+\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
+\newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
+\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
+\newcommand{\hlstd}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
+\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
+\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
+\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
+\let\hlipl\hlkwb
+
+\usepackage{framed}
+\makeatletter
+\newenvironment{kframe}{%
+ \def\at@end@of@kframe{}%
+ \ifinner\ifhmode%
+  \def\at@end@of@kframe{\end{minipage}}%
+  \begin{minipage}{\columnwidth}%
+ \fi\fi%
+ \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
+ \colorbox{shadecolor}{##1}\hskip-\fboxsep
+     % There is no \\@totalrightmargin, so:
+     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+ \MakeFramed {\advance\hsize-\width
+   \@totalleftmargin\z@ \linewidth\hsize
+   \@setminipage}}%
+ {\par\unskip\endMakeFramed%
+ \at@end@of@kframe}
+\makeatother
+
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
+
+\usepackage{alltt}
+\usepackage{graphicx, color, framed, alltt}
+\usepackage{fullpage}
+\usepackage{pdflscape}
+\usepackage{longtable}
+\usepackage{url}
+
+\title{Coal tree: Check data}
+\author{Jerome Hilaire (MCC)}
+\date{\today}
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\begin{document}
+\maketitle
+\tableofcontents
+\clearpage
+
+
+
+\section{User settings}
+
+Data path: \url{../data/coal_data.RData} \\
+Period: 1990-2012
+
+\section{Input summary}
+
+
+\begin{longtable}[t]{l|r}
+\caption{\label{tab:input_summary}Summary of input variables and parameters}\\
+\hline
+Category & Value\\
+\hline
+Number of countries & 232\\
+\hline
+Number of countries & 41\\
+\hline
+\end{longtable}
+
+
+
+
+\section{Preprocessed data}
+\subsection{Variables}
+
+\subsubsection{Variable definition}
+
+\begin{landscape}
+\tiny
+
+\begin{longtable}[t]{r|l|l|l|l}
+\caption{\label{tab:vardef}Definition of selected variables.}\\
+\hline
+ID & variable & longname & unit & source\\
+\hline
+1 & E\_CC & Coal consumption & GJ/yr & IEA2016 - WEB\\
+\hline
+2 & E\_CP & Coal production & GJ/yr & IEA2016 - WEB\\
+\hline
+3 & E\_CIm & Coal imports & GJ/yr & IEA2016 - WEB\\
+\hline
+4 & E\_CEx & Coal exports & GJ/yr & IEA2016 - WEB\\
+\hline
+5 & Elec\_C & Coal - Electricity Output & GWh & IEA2016 - WEB\\
+\hline
+6 & E\_CRe & Coal rents & \%(GDP) & WDI 2016\\
+\hline
+7 & E\_GC & Natural gas consumption & Mt/yr & IEA2016 - WEB\\
+\hline
+8 & E\_OC & Oil products consumption & Mt/yr & IEA2016 - WEB\\
+\hline
+9 & E\_NC & Nuclear consumption & Mt/yr & IEA2016 - WEB\\
+\hline
+10 & E\_TotP & Total energy production & GJ/yr & IEA2016 - WEB\\
+\hline
+11 & E\_TotPeS & Total primary energy supply & GJ/yr & IEA2016 - WEB\\
+\hline
+12 & E\_TotFeC & Total final consumption & GJ/yr & IEA2016 - WEB\\
+\hline
+13 & AP\_pm25mae & PM2.5 air pollution (mean annual exposure) & micrograms per cubic meter & WDI 2016\\
+\hline
+14 & AP\_pm25pe & PM2.5 air pollution (population exposed to levels & \% of total population & WDI 2016\\
+\hline
+15 & P\_Ndep & Population ages 15-64 & \% of total population & WDI 2016\\
+\hline
+16 & Manu\_Ex & Manufactures exports & \% of merchandise exports & WDI 2016\\
+\hline
+17 & P & Population & million Inhabitants & UN\\
+\hline
+18 & LEx & Life expectancy at birth & Total (years) & World Bank (WDI)\\
+\hline
+19 & URB & Urban population & \% & World Bank (WDI)\\
+\hline
+20 & PDen & Population density & people per squared km of land area & World Bank (WDI)\\
+\hline
+21 & GDP\_Ag & Agricultural share of GDP & \% of GDP & World Bank (WDI)\\
+\hline
+22 & GDP\_Ind & Industrial share of GDP & \% of GDP & World Bank (WDI)\\
+\hline
+23 & GDP\_Ser & Services share of GDP & \% of GDP & World Bank (WDI)\\
+\hline
+24 & GDP\_Tra & Trade share of GDP & \% of GDP & World Bank (WDI)\\
+\hline
+25 & CO2 & CO2 emissions & Gg(CO2)/yr & CDIAC\\
+\hline
+26 & GINI & Gini coefficient &  & SWIID\\
+\hline
+27 & Inst & Institution quality index & Unitless & UN\\
+\hline
+28 & EE & Energy efficiency as the ratio of total final ener & Unitless & IEA2016 - WEB + Own calculation\\
+\hline
+29 & EF & Emission intensity as the ratio of CO2 over total & Mt(CO2)/GJ & IEA2016 - WEB + Own calculation\\
+\hline
+30 & GDPpc & Expenditure-side real GDP at chained PPPsper capit & million (2011) US\$/Cap & Own\\
+\hline
+31 & GDP\textasciicircum{}2 & Squared Expenditure-side real GDP at chained PPPs & (million (2011) US\$)\textasciicircum{}2 & Own\\
+\hline
+32 & GDPpc\textasciicircum{}2 & Squared Expenditure-side real GDP at chained PPPsp & (million (2011) US\$/Cap)\textasciicircum{}2 & Own\\
+\hline
+33 & d1\_GDP & First-order derivative approcimation of Expenditur & d/dt(million (2011) US\$) & Own\\
+\hline
+34 & d1\_GDPpc & First-order derivative approcimation of Expenditur & d/dt(million (2011) US\$/Cap) & Own\\
+\hline
+35 & d2\_GDP & Second-order derivative approcimation of First-ord & d2/dt2(d/dt(million (2011) US\$)) & Own\\
+\hline
+36 & d2\_GDPpc & Second-order derivative approcimation of First-ord & d2/dt2(d/dt(million (2011) US\$/Cap)) & Own\\
+\hline
+37 & E\_CE & Coal endowment - Reserves (proved at the end of 20 & Mt(coal) & Own\\
+\hline
+38 & E\_RenC & Aggregated variable: E\_RenC=E\_BC+E\_HC+E\_RC+E\_GeoC & Mt/yr & Own\\
+\hline
+39 & Manu & Unspecified & None & Own\\
+\hline
+40 & GDP & Unspecified & None & Own\\
+\hline
+41 & ManuGDP & Unspecified & None & Own\\
+\hline
+\end{longtable}
+
+
+\end{landscape}
+
+
+\subsection{Descriptive statistics}
+
+\begin{landscape}
+\tiny
+
+\begin{longtable}[t]{r|l|l|l|l|l|l|l|l|l|r|r}
+\caption{\label{tab:table_descStatSummary}Descriptive statistics of selected variables.}\\
+\hline
+ID & variable & min & p05 & p25 & median & mean & p75 & p95 & max & N & NAs\\
+\hline
+1 & E\_CC & 0e+00 & 0e+00 & 0e+00 & 5.46e+03 & 2.32e+05 & 5.51e+04 & 9.48e+05 & 2.53e+07 & 7810 & 2025\\
+\hline
+2 & E\_CP & 0e+00 & 0e+00 & 0e+00 & 0e+00 & 7.42e+05 & 7.12e+04 & 3.56e+06 & 8.13e+07 & 7810 & 1901\\
+\hline
+3 & E\_CIm & 0e+00 & 0e+00 & 0e+00 & 2.93e+03 & 1.2e+05 & 5.95e+04 & 5.42e+05 & 7.63e+06 & 7810 & 1883\\
+\hline
+4 & E\_CEx & 0e+00 & 0e+00 & 0e+00 & 0e+00 & 1.18e+05 & 2.08e+03 & 6.95e+05 & 1.05e+07 & 7810 & 1883\\
+\hline
+5 & Elec\_C & 0e+00 & 0e+00 & 0e+00 & 3.4e+01 & 3.87e+04 & 8.97e+03 & 1.47e+05 & 4.12e+06 & 7810 & 1991\\
+\hline
+6 & E\_CRe & 0e+00 & 0e+00 & 0e+00 & 0e+00 & 1.22e-01 & 9.95e-03 & 6.29e-01 & 2.29e+01 & 12141 & 5222\\
+\hline
+7 & E\_GC & 0e+00 & 0e+00 & 0e+00 & 9.96e+03 & 3.03e+05 & 1.19e+05 & 1.16e+06 & 1.54e+07 & 7810 & 2025\\
+\hline
+8 & E\_OC & 6.02e+02 & 8.89e+03 & 3.51e+04 & 1.34e+05 & 8.38e+05 & 4.81e+05 & 3.27e+06 & 3.53e+07 & 7810 & 2025\\
+\hline
+9 & E\_NC & 0e+00 & 0e+00 & 0e+00 & 0e+00 & 0e+00 & 0e+00 & 0e+00 & 0e+00 & 7810 & 2025\\
+\hline
+10 & E\_TotP & 0e+00 & 2.73e+03 & 8.51e+04 & 4.28e+05 & 2.8e+06 & 1.85e+06 & 1.01e+07 & 1.09e+08 & 7810 & 1991\\
+\hline
+11 & E\_TotPeS & 1.02e+03 & 4.61e+04 & 1.6e+05 & 5.06e+05 & 2.8e+06 & 1.67e+06 & 9.93e+06 & 1.27e+08 & 7810 & 1991\\
+\hline
+12 & E\_TotFeC & 7.96e+02 & 2.92e+04 & 1.14e+05 & 3.69e+05 & 1.97e+06 & 1.16e+06 & 6.84e+06 & 7.63e+07 & 7810 & 2025\\
+\hline
+13 & AP\_pm25mae & 3.2e+00 & 6e+00 & 1.42e+01 & 1.99e+01 & 2.61e+01 & 3.35e+01 & 6.46e+01 & 1.31e+02 & 12141 & 10221\\
+\hline
+14 & AP\_pm25pe & 0e+00 & 0e+00 & 9.96e+01 & 1e+02 & 8.64e+01 & 1e+02 & 1e+02 & 1.01e+02 & 12141 & 10221\\
+\hline
+15 & P\_Ndep & 4.53e+01 & 4.94e+01 & 5.27e+01 & 5.75e+01 & 5.87e+01 & 6.51e+01 & 6.93e+01 & 8.6e+01 & 12141 & 1477\\
+\hline
+16 & Manu\_Ex & 0e+00 & 8.24e-01 & 8.66e+00 & 3.03e+01 & 3.82e+01 & 6.82e+01 & 8.94e+01 & 9.91e+01 & 12141 & 5604\\
+\hline
+17 & P & 6.44e+02 & 1.04e+04 & 2.65e+05 & 3.27e+06 & 2.1e+07 & 1.06e+07 & 7.17e+07 & 1.38e+09 & 14850 & 0\\
+\hline
+18 & LEx & 1.93e+01 & 4.19e+01 & 5.51e+01 & 6.64e+01 & 6.34e+01 & 7.21e+01 & 7.85e+01 & 8.41e+01 & 14850 & 4423\\
+\hline
+19 & URB & 2.08e+00 & 1.15e+01 & 2.87e+01 & 4.89e+01 & 5e+01 & 7.02e+01 & 9.41e+01 & 1e+02 & 14850 & 3236\\
+\hline
+20 & PDen & 9.86e-02 & 3.11e+00 & 1.85e+01 & 6.02e+01 & 3.23e+02 & 1.38e+02 & 5.65e+02 & 2.16e+04 & 14850 & 3676\\
+\hline
+21 & GDP\_Ag & 0e+00 & 1.15e+00 & 5.51e+00 & 1.51e+01 & 1.93e+01 & 3.02e+01 & 5.08e+01 & 9.48e+01 & 14850 & 8195\\
+\hline
+22 & GDP\_Ind & 2.53e+00 & 1.09e+01 & 1.96e+01 & 2.72e+01 & 2.86e+01 & 3.49e+01 & 5.28e+01 & 9.67e+01 & 14850 & 8231\\
+\hline
+23 & GDP\_Ser & 2.43e+00 & 2.7e+01 & 4.16e+01 & 5.16e+01 & 5.21e+01 & 6.34e+01 & 7.63e+01 & 1e+02 & 14850 & 8238\\
+\hline
+24 & GDP\_Tra & 2.1e-02 & 2.13e+01 & 4.46e+01 & 6.8e+01 & 7.84e+01 & 1e+02 & 1.62e+02 & 5.32e+02 & 14850 & 6813\\
+\hline
+25 & CO2 & 0e+00 & 3.67e+04 & 5.54e+05 & 4.78e+06 & 1.03e+08 & 4.07e+07 & 3.98e+08 & 1.03e+10 & 14850 & 3440\\
+\hline
+26 & GINI & 1.53e+01 & 2.28e+01 & 2.94e+01 & 3.65e+01 & 3.72e+01 & 4.4e+01 & 5.44e+01 & 7.16e+01 & 14850 & 10299\\
+\hline
+27 & Inst & -2.49e+00 & -1.41e+00 & -6.86e-01 & -1.35e-01 & -1.52e-03 & 7.21e-01 & 1.62e+00 & 1.99e+00 & 14850 & 10983\\
+\hline
+28 & EE & 1.04e-01 & 4.94e-01 & 6.58e-01 & 7.43e-01 & 7.33e-01 & 8.25e-01 & 9.36e-01 & 1.15e+00 & 7810 & 2025\\
+\hline
+29 & EF & 1.29e+00 & 1.06e+01 & 3.8e+01 & 5.73e+01 & 5.67e+01 & 7.07e+01 & 9.04e+01 & 1.29e+03 & 7810 & 2138\\
+\hline
+30 & GDPpc & 1.42e+02 & 8.32e+02 & 2.01e+03 & 5.34e+03 & 1.12e+04 & 1.38e+04 & 3.92e+04 & 2.45e+05 & 14850 & 5585\\
+\hline
+31 & GDP\textasciicircum{}2 & 3.44e+14 & 3.38e+17 & 3.64e+19 & 6.25e+20 & 1.06e+24 & 1.73e+22 & 1.21e+24 & 2.59e+26 & 14850 & 5585\\
+\hline
+32 & GDPpc\textasciicircum{}2 & 2.03e+04 & 6.92e+05 & 4.04e+06 & 2.85e+07 & 4.04e+08 & 1.9e+08 & 1.54e+09 & 6.01e+10 & 14850 & 5585\\
+\hline
+33 & d1\_GDP & -5.05e+11 & -3.17e+09 & 2.64e+07 & 6.75e+08 & 9.87e+09 & 4.88e+09 & 4.83e+10 & 1.08e+12 & 14850 & 5762\\
+\hline
+34 & d1\_GDPpc & -4.29e+04 & -7.41e+02 & -2.1e+01 & 9.99e+01 & 2.39e+02 & 4.66e+02 & 1.57e+03 & 3.54e+04 & 14850 & 5762\\
+\hline
+35 & d2\_GDP & -7.3e+11 & -1.52e+10 & -6.81e+08 & 1.37e+07 & 3.69e+08 & 1.19e+09 & 1.76e+10 & 7.16e+11 & 14850 & 5939\\
+\hline
+36 & d2\_GDPpc & -5.04e+04 & -1.32e+03 & -1.62e+02 & 9.11e+00 & 6.15e+00 & 2.04e+02 & 1.32e+03 & 5.53e+04 & 14850 & 5939\\
+\hline
+37 & E\_CE & 0e+00 & 0e+00 & 0e+00 & 0e+00 & 3.79e+03 & 0e+00 & 8.7e+03 & 2.37e+05 & 15544 & 0\\
+\hline
+38 & E\_RenC & 0e+00 & 0e+00 & 0e+00 & 1.06e+04 & 1.86e+05 & 8.81e+04 & 5.35e+05 & 9.21e+06 & 7810 & 0\\
+\hline
+39 & Manu & 1e-01 & 3.46e+00 & 8.02e+00 & 1.33e+01 & 1.4e+01 & 1.89e+01 & 2.75e+01 & 4.73e+01 & 15399 & 9212\\
+\hline
+40 & GDP & 1.85e+07 & 5.82e+08 & 6.03e+09 & 2.5e+10 & 2.55e+11 & 1.32e+11 & 1.1e+12 & 1.61e+13 & 15399 & 6134\\
+\hline
+41 & ManuGDP & 8e-13 & 1.1e-11 & 8.85e-11 & 3.73e-10 & 1.52e-09 & 1.29e-09 & 7.03e-09 & 5.47e-08 & 15399 & 9892\\
+\hline
+\end{longtable}
+
+
+\end{landscape}
+
+\subsubsection{CHN}
+\subsubsection{USA}
+\subsubsection{DEU}
+\subsubsection{IND}
+\subsubsection{JPN}
+\subsubsection{POL}
+\subsubsection{GBR}
+\subsubsection{ZAF}
+\subsubsection{PRK}
+\begin{kframe}
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in data.frame(..., check.names = FALSE): arguments imply differing number of rows: 41, 36}}\end{kframe}
+
+
+\end{document}

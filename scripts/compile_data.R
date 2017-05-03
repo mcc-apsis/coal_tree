@@ -30,8 +30,13 @@ u_outRData      = "data/coal_data.RData"
 
 # Unit conversion
 u_convert = list()
-u_convert$Mtoe_to_GJ = 41868
-u_convert$Mtoe_to_EJ = 41868*1e-9
+u_convert$Mtce_to_Mtoe = 1/1.42857143   # Million tonnes of oil equivalent to Million tonnes of coal equivalent (IEA definition)
+u_convert$Mtoe_to_Mtce = 1.42857143     # Million tonnes of oil equivalent to Million tonnes of coal equivalent (IEA definition)
+u_convert$ktoe_to_GJ   = 41868          # Million tonnes of oil equivalent to Gigajoules (IEA definition)
+u_convert$Mtoe_to_GJ   = 41868*1e3      # Million tonnes of oil equivalent to Gigajoules (IEA definition)
+u_convert$Mtoe_to_EJ   = 41868*1e-6     # Million tonnes of oil equivalent to Exajoules (IEA definition)
+u_convert$QBtu_to_GJ   = 1.05505585e+9  # Million Quadrillion BTUs (1e15 BTUs) to Gigajoules (IEA definition)
+u_convert$QBtu_to_EJ   = 1.05505585     # Million Quadrillion BTUs (1e15 BTUs) to Exajoules (IEA definition)
 
 # Accent conversion
 # Adapted from http://stackoverflow.com/questions/20495598/replace-accented-characters-in-r-with-non-accented-counterpart-utf-8-encoding
@@ -142,6 +147,36 @@ get_BGRdata <- function(i_xlsxFile, i_sheet, i_startRow, i_variable, i_unit, i_l
   if (DEBUG) cat(paste0(">> get_BGRdata: ",i_variable," (",i_longname," - ",i_unit,")\n"))
   
   country_nameMapping <- c(
+    "Albanien"                = "Albania",
+    "Äthiopien"               = "Ethiopia",
+    "Dominikanische Rep."     = "Dominican Republic",
+    "Kroatien"                = "Croatia",
+    "Mazedonien"              = "Macedonia (the former Yugoslav Republic of)",
+    "Österreich"              = "Austria",
+    "Weißrussland"            = "Belarus",
+    "Zentralafrikanische Rep."= "Central African Republic",
+    "Ägypten"                 = "Egypt",
+    "Algerien"                = "Algeria",
+    "Armenien"                = "Armenia",
+    "Bangladesch"             = "Bangladesh",
+    "Belgien"                 = "Belgium",
+    "Bolivien"                = "Bolivia (Plurinational State of)",
+    "Georgien"                = "Georgia",
+    "Grönland"                = "Greenland",
+    "Irland"                  = "Ireland",
+    "Kongo, DR"               = "Congo (Democratic Republic of the)",
+    "Laos"                    = "Lao People's Democratic Republic",
+    "Madagaskar"              = "Madagascar",
+    "Marokko"                 = "Morocco",
+    "Neukaledonien"           = "New Caledonia",
+    "Norwegen"                = "Norway",
+    "Sambia"                  = "Zambia",
+    "Schweden"                = "Sweden",
+    "Slowakei"                = "Slovakia",
+    "Slowenien"               = "Slovenia",
+    "Swasiland"               = "Swaziland",
+    "Tadschikistan"           = "Tajikistan",
+    "Tansania"                = "Tanzania, United Republic of",
     "USA"                     = "United States of America",
     "Venezuela"               = "Venezuela (Bolivarian Republic of)",
     "Russische Föderation"    = "Russian Federation",
@@ -185,8 +220,36 @@ get_BGRdata <- function(i_xlsxFile, i_sheet, i_startRow, i_variable, i_unit, i_l
     "Hongkong"                = "Hong Kong",
     "Bulgarien"               = "Bulgaria")
   
-  tmp <- read.xlsx(xlsxFile = i_xlsxFile, sheet = i_sheet, startRow = i_startRow)
-  
+  tmp <- read.xlsx(xlsxFile = i_xlsxFile, sheet = i_sheet, startRow = i_startRow, na.strings = c("k.A.", "-", "< 0,05"))
+
+  if (i_sheet %in% c("s. 27, Übersicht Hartkohle,...", "s. 34, Übersicht Weichbraun...")) {
+    
+    if (grepl("reserves", tolower(i_longname))) {
+      tmp <- tmp[1:(which(grepl("Welt", tmp$Region))-1), c(1,3)]
+      tmp <- tmp %>% 
+        rename(value = Reserven)
+    } else {
+      tmp <- tmp[1:(which(grepl("Welt", tmp$Region))-1), c(1,4)]
+      tmp <- tmp %>% 
+        rename(value = Ressourcen)
+    }
+    
+    tmp <- tmp %>%
+      rename(country = Region) %>% 
+      # mutate(country = ifelse(length(which(sapply(names(u_accentreplace), function(x) grepl(x, "Türkei")))) != 0,
+      #                         paste(sapply(names(which(sapply(names(u_accentreplace), function(x) grepl(x, country)))), 
+      #                                      function(y) gsub(y, paste(u_accentreplace[[which(names(u_accentreplace) == y)]]), country))),
+      #                         country)) %>% 
+      mutate(year     = 2015) %>% 
+      mutate(value    = as.numeric(value)*i_unitFactor) %>% 
+      mutate(unit     = i_unit) %>% 
+      mutate(variable = i_variable) %>% 
+      mutate(longname = i_longname) %>% 
+      mutate(source   = i_source) %>% 
+      select(country,year,variable,longname,source,unit,value) %>% 
+      rename_countries(country_nameMapping, i_countryList)
+  }
+    
   if (i_sheet %in% c("31, Hartkohleberbrauch 2015",    "38, Weichbraunkohleverbrauc...", 
                      "28, Hartkohleressourcen 2015",   "29, Hartkohlereserven 2015", 
                      "35, Weichbraunkohleressourc...", "36, Weichbraunkohlereserven...",
@@ -466,14 +529,14 @@ v_data <- rbind(v_data,
 # TODO:
 v_data <- rbind(v_data,
                 get_IEAWEBdata(u_fpath$IEAWEB, "Coal and coal products", "Production", 
-                               "E_CP", "Mt/yr", "Coal production", "IEA2016 - WEB", countries))
+                               "E_CP", "GJ/yr", "Coal production", "IEA2016 - WEB", countries))
 
 #-- Coal stocks ------------------------------
 # Source: IEA WEB 2016
 # TODO:
 v_data <- rbind(v_data,
                 get_IEAWEBdata(u_fpath$IEAWEB, "Coal and coal products", "Stock changes", 
-                               "E_CSt", "Mt/yr", "Coal stock changes", "IEA2016 - WEB", countries))
+                               "E_CSt", "GJ/yr", "Coal stock changes", "IEA2016 - WEB", countries))
 
 #-- Coal imports/exports ---------------------
 # Source: BGR 2016
@@ -495,11 +558,30 @@ v_data <- rbind(v_data,
 # TODO:
 v_data <- rbind(v_data,
                 get_IEAWEBdata(u_fpath$IEAWEB, "Coal and coal products", "Imports", 
-                               "E_CIm", "Mt/yr", "Coal imports", "IEA2016 - WEB", countries))
+                               "E_CIm", "GJ/yr", "Coal imports", "IEA2016 - WEB", countries))
 
 v_data <- rbind(v_data,
                 get_IEAWEBdata(u_fpath$IEAWEB, "Coal and coal products", "Exports", 
-                               "E_CEx", "Mt/yr", "Coal exports", "IEA2016 - WEB", countries))
+                               "E_CEx", "GJ/yr", "Coal exports", "IEA2016 - WEB", countries))
+
+#-- Oil and Gas imports/exports ---------------------
+# Source: IEA WEB 2016
+# TODO:
+v_data <- rbind(v_data,
+                get_IEAWEBdata(u_fpath$IEAWEB, "Oil products", "Imports", 
+                               "E_OIm", "GJ/yr", "Oil imports", "IEA2016 - WEB", countries))
+
+v_data <- rbind(v_data,
+                get_IEAWEBdata(u_fpath$IEAWEB, "Oil products", "Exports", 
+                               "E_OEx", "GJ/yr", "Oil exports", "IEA2016 - WEB", countries))
+
+v_data <- rbind(v_data,
+                get_IEAWEBdata(u_fpath$IEAWEB, "Natural gas", "Imports", 
+                               "E_GIm", "GJ/yr", "Natural gas imports", "IEA2016 - WEB", countries))
+
+v_data <- rbind(v_data,
+                get_IEAWEBdata(u_fpath$IEAWEB, "Natural gas", "Exports", 
+                               "E_GEx", "GJ/yr", "Natural gas exports", "IEA2016 - WEB", countries))
 
 #-- Electricity production from coal ---------
 # Source: IEA WEB 2016
@@ -595,34 +677,82 @@ v_data <- rbind(v_data,
 
 # Source: BGR 2016
 # TODO:
-#  - Ask Andruleit to provide full tables for oil, coal and gas (reserves, resources, production, demand, import, export)
 #  - Process Kosovo
 v_data <- rbind(v_data,
-                get_BGRdata(u_fpath$BGR, "28, Hartkohleressourcen 2015", 1,
+                get_BGRdata(u_fpath$BGR, "s. 27, Übersicht Hartkohle,...", 1,
                             "E_CE", "Mt(coal)", "Coal endowment - Hard coal Resources (proved at the end of 2015)", "BGR 2016", 
                             countries))
 v_data <- rbind(v_data,
-                get_BGRdata(u_fpath$BGR, "29, Hartkohlereserven 2015", 1,
+                get_BGRdata(u_fpath$BGR, "s. 27, Übersicht Hartkohle,...", 1,
                             "E_CE", "Mt(coal)", "Coal endowment - Hard coal Reserves (proved at the end of 2015)", "BGR 2016", 
                             countries))
 
 v_data <- rbind(v_data,
-                get_BGRdata(u_fpath$BGR, "35, Weichbraunkohleressourc...", 1,
+                get_BGRdata(u_fpath$BGR, "s. 34, Übersicht Weichbraun...", 1,
                             "E_CE", "Mt(coal)", "Coal endowment - Lignite Resources (proved at the end of 2015)", "BGR 2016", 
                             countries))
 v_data <- rbind(v_data,
-                get_BGRdata(u_fpath$BGR, "36, Weichbraunkohlereserven...", 1,
+                get_BGRdata(u_fpath$BGR, "s. 34, Übersicht Weichbraun...", 1,
                             "E_CE", "Mt(coal)", "Coal endowment - Lignite Reserves (proved at the end of 2015)", "BGR 2016", 
                             countries))
 
+v_data <- rbind(v_data,
+  right_join(countries,
+    rbind(
+    get_BGRdata(u_fpath$BGR, "s. 27, Übersicht Hartkohle,...", 1,
+              "E_CE", "Mt(coal)", "Coal endowment - Hard coal Resources (estimated at the end of 2015)", "BGR 2016", 
+              countries) %>% 
+      select(iso, value),
+    get_BGRdata(u_fpath$BGR, "s. 34, Übersicht Weichbraun...", 1,
+              "E_CE", "Mt(coal)", "Coal endowment - Lignite Resources (estimated at the end of 2015)", "BGR 2016", 
+              countries) %>% 
+      select(iso, value)) %>% 
+    group_by(iso) %>% 
+    summarize(value=sum(value, na.rm=TRUE)) %>% 
+    ungroup() %>% 
+      mutate(year = 2015) %>% 
+      mutate(variable  = "E_CE") %>% 
+      mutate(longname = "Coal endowment - Resources (estimated at the end of 2015)") %>% 
+      mutate(source = "BGR2016 + Own calculation") %>% 
+      mutate(unit = "Mt(Coal)")) %>% 
+    select(country,iso,year,variable,longname,source,unit,value))
+    
+v_data <- rbind(v_data,
+              right_join(countries,
+                          rbind(
+                            get_BGRdata(u_fpath$BGR, "s. 27, Übersicht Hartkohle,...", 1,
+                                        "E_CE", "Mt(coal)", "Coal endowment - Hard coal Reserves (proved at the end of 2015)", "BGR 2016", 
+                                        countries) %>% 
+                              select(iso, value),
+                            get_BGRdata(u_fpath$BGR, "s. 34, Übersicht Weichbraun...", 1,
+                                        "E_CE", "Mt(coal)", "Coal endowment - Lignite Reserves (proved at the end of 2015)", "BGR 2016", 
+                                        countries) %>% 
+                              select(iso, value)) %>% 
+                            group_by(iso) %>% 
+                            summarize(value=sum(value, na.rm=TRUE)) %>% 
+                            ungroup() %>% 
+                            mutate(year = 2015) %>% 
+                            mutate(variable  = "E_CE") %>% 
+                            mutate(longname = "Coal endowment - Reserves (proved at the end of 2015)") %>% 
+                            mutate(source = "BGR2016 + Own calculation") %>% 
+                            mutate(unit = "Mt(Coal)")) %>% 
+                  select(country,iso,year,variable,longname,source,unit,value))
 
-#-- Coal rents -------------------------------
+
+#-- Coal, oil, gas rents -------------------------------
 # Source: WB 2016
 v_data <- rbind(v_data,
                 get_WDIdata(u_fpath$WDI, "Coal rents (% of GDP)", 
                             "E_CRe", "%(GDP)", "Coal rents", "WDI 2016", 
                             countries))
-
+v_data <- rbind(v_data,
+                get_WDIdata(u_fpath$WDI, "Oil rents (% of GDP)", 
+                            "E_ORe", "%(GDP)", "Coal rents", "WDI 2016", 
+                            countries))
+v_data <- rbind(v_data,
+                get_WDIdata(u_fpath$WDI, "Natural gas rents (% of GDP)", 
+                            "E_GRe", "%(GDP)", "Natural gas rents", "WDI 2016", 
+                            countries))
 
 #-- Natural gas consumption ------------------
 # Source: IEA WEB 2016
@@ -681,6 +811,19 @@ v_data <- rbind(v_data,
                                "Elec", "Mt/yr", "Electricity consumption", "IEA2016 - WEB", countries))
 
 
+#-- Total energy ------------------------------
+# Source: IEA WEB 2016
+# TODO:
+v_data <- rbind(v_data,
+                get_IEAWEBdata(u_fpath$IEAWEB, "Total", "Production", 
+                               "E_TotP", "GJ/yr", "Total energy production", "IEA2016 - WEB", countries))
+v_data <- rbind(v_data,
+                get_IEAWEBdata(u_fpath$IEAWEB, "Total", "Total primary energy supply", 
+                               "E_TotPeS", "GJ/yr", "Total primary energy supply", "IEA2016 - WEB", countries))
+v_data <- rbind(v_data,
+                get_IEAWEBdata(u_fpath$IEAWEB, "Total", "Total final consumption", 
+                               "E_TotFeC", "GJ/yr", "Total final consumption", "IEA2016 - WEB", countries))
+
 #-- GDP --------------------------------------
 # Source: WB 2016
 v_data <- rbind(v_data,
@@ -708,6 +851,11 @@ v_data <- rbind(v_data,
 
 #-- Non-dependent population -----------------
 v_data <- rbind(v_data,
+                get_WDIdata(u_fpath$WDI, "Population", 
+                            "P", "Total population", "Population", "WDI 2016", 
+                            countries))
+#-- Non-dependent population -----------------
+v_data <- rbind(v_data,
                 get_WDIdata(u_fpath$WDI, "Population ages 15-64 (% of total)", 
                             "P_Ndep", "% of total population", "Population ages 15-64", "WDI 2016", 
                             countries))
@@ -723,6 +871,24 @@ v_data <- rbind(v_data,
                 get_WDIdata(u_fpath$WDI, "Manufactures exports (% of merchandise exports)", 
                             "Manu_Ex", "% of merchandise exports", "Manufactures exports", "WDI 2016", 
                             countries))
+
+
+# Subsidies
+
+# Other interesting WDI variables
+# Access to electricity (% of population)
+# Children in employment, total (% of children ages 7-14)
+# Children out of school (% of primary school age)
+# Gross capital formation (% of GDP)
+# Health expenditure per capita (current US$)
+# Lending interest rate (%)
+# Military expenditure (% of GDP)
+# Nitrous oxide emissions
+# Rail lines (total route-km)
+# Railways, goods transported (million ton-km)
+# Real interest rate (%)
+# Research and development expenditure (% of GDP)
+
 
 #---------------------------------------------
 # COMBINE WITH CO2 typology data
@@ -825,39 +991,39 @@ p_data <- p_data %>%
   mutate(variable = ifelse(variable == "dummy_coal", "E_CE", variable)) %>%
   mutate(longname = ifelse(variable == "energy_coal_production_IEA", "Coal production", longname)) %>% 
   mutate(source   = ifelse(variable == "energy_coal_production_IEA", "IEA", source)) %>% 
-  mutate(unit     = ifelse(variable == "energy_coal_production_IEA", "EJ/yr", unit)) %>% 
+  mutate(unit     = ifelse(variable == "energy_coal_production_IEA", "GJ/yr", unit)) %>% 
   mutate(variable = ifelse(variable == "energy_coal_production_IEA", "E_CP", variable)) %>% 
   mutate(longname = ifelse(variable == "energy_oil_production_IEA", "Oil production", longname)) %>% 
   mutate(source   = ifelse(variable == "energy_oil_production_IEA", "IEA", source)) %>% 
-  mutate(unit     = ifelse(variable == "energy_oil_production_IEA", "EJ/yr", unit)) %>% 
+  mutate(unit     = ifelse(variable == "energy_oil_production_IEA", "GJ/yr", unit)) %>% 
   mutate(variable = ifelse(variable == "energy_oil_production_IEA", "E_OP", variable)) %>% 
   mutate(longname = ifelse(variable == "energy_gas_production_IEA", "Gas production", longname)) %>% 
   mutate(source   = ifelse(variable == "energy_gas_production_IEA", "IEA", source)) %>% 
-  mutate(unit     = ifelse(variable == "energy_gas_production_IEA", "EJ/yr", unit)) %>% 
+  mutate(unit     = ifelse(variable == "energy_gas_production_IEA", "GJ/yr", unit)) %>% 
   mutate(variable = ifelse(variable == "energy_gas_production_IEA", "E_GP", variable)) %>% 
   mutate(longname = ifelse(variable == "energy_coal_imports_IEA", "Coal imports", longname)) %>% 
   mutate(source   = ifelse(variable == "energy_coal_imports_IEA", "IEA", source)) %>% 
-  mutate(unit     = ifelse(variable == "energy_coal_imports_IEA", "EJ/yr", unit)) %>% 
+  mutate(unit     = ifelse(variable == "energy_coal_imports_IEA", "GJ/yr", unit)) %>% 
   mutate(variable = ifelse(variable == "energy_coal_imports_IEA", "E_CIm", variable)) %>% 
   mutate(longname = ifelse(variable == "energy_oil_imports_IEA", "Oil imports", longname)) %>% 
   mutate(source   = ifelse(variable == "energy_oil_imports_IEA", "IEA", source)) %>% 
-  mutate(unit     = ifelse(variable == "energy_oil_imports_IEA", "EJ/yr", unit)) %>% 
+  mutate(unit     = ifelse(variable == "energy_oil_imports_IEA", "GJ/yr", unit)) %>% 
   mutate(variable = ifelse(variable == "energy_oil_imports_IEA", "E_OIm", variable)) %>% 
   mutate(longname = ifelse(variable == "energy_gas_imports_IEA", "Gas imports", longname)) %>% 
   mutate(source   = ifelse(variable == "energy_gas_imports_IEA", "IEA", source)) %>% 
-  mutate(unit     = ifelse(variable == "energy_gas_imports_IEA", "EJ/yr", unit)) %>% 
+  mutate(unit     = ifelse(variable == "energy_gas_imports_IEA", "GJ/yr", unit)) %>% 
   mutate(variable = ifelse(variable == "energy_gas_imports_IEA", "E_GIm", variable)) %>% 
   mutate(longname = ifelse(variable == "energy_coal_exports_IEA", "Coal exports", longname)) %>% 
   mutate(source   = ifelse(variable == "energy_coal_exports_IEA", "IEA", source)) %>% 
-  mutate(unit     = ifelse(variable == "energy_coal_exports_IEA", "EJ/yr", unit)) %>%
+  mutate(unit     = ifelse(variable == "energy_coal_exports_IEA", "GJ/yr", unit)) %>%
   mutate(variable = ifelse(variable == "energy_coal_exports_IEA", "E_Cex", variable)) %>%
   mutate(longname = ifelse(variable == "energy_oil_exports_IEA", "Oil exports", longname)) %>% 
   mutate(source   = ifelse(variable == "energy_oil_exports_IEA", "IEA", source)) %>% 
-  mutate(unit     = ifelse(variable == "energy_oil_exports_IEA", "EJ/yr", unit)) %>% 
+  mutate(unit     = ifelse(variable == "energy_oil_exports_IEA", "GJ/yr", unit)) %>% 
   mutate(variable = ifelse(variable == "energy_oil_exports_IEA", "E_OEx", variable)) %>% 
   mutate(longname = ifelse(variable == "energy_gas_exports_IEA", "Gas exports", longname)) %>% 
   mutate(source   = ifelse(variable == "energy_gas_exports_IEA", "IEA", source)) %>% 
-  mutate(unit     = ifelse(variable == "energy_gas_exports_IEA", "EJ/yr", unit)) %>%
+  mutate(unit     = ifelse(variable == "energy_gas_exports_IEA", "GJ/yr", unit)) %>%
   mutate(variable = ifelse(variable == "energy_gas_exports_IEA", "E_GEx", variable)) %>% 
   mutate(longname = ifelse(variable == "ratio_ee", "Ratio of final energy over primary energy", longname)) %>% 
   mutate(source   = ifelse(variable == "ratio_ee", "IEA", source)) %>% 
@@ -926,6 +1092,58 @@ v_data = rbind(v_data,
 # Set all non finite values to NA
 v_data$value[which(is.nan(v_data$value))]     = NA
 v_data$value[which(!is.finite(v_data$value))] = NA
+
+# Set year variable as numerical
+v_data <- v_data %>% 
+  mutate(year = as.numeric(year))
+
+# Set year variable as numerical
+v_data <- v_data %>% 
+  filter(tolower(country) != "world")
+
+# Compute EE and EF
+v_data <- rbind(v_data,
+  left_join(
+    v_data %>% 
+      filter(variable == "E_TotPeS") %>% 
+      select(-longname) %>% 
+      select(-unit) %>% 
+      select(-source) %>% 
+      spread(variable, value),
+    v_data %>% 
+      filter(variable == "E_TotFeC") %>% 
+      select(-longname) %>% 
+      select(-unit) %>% 
+      select(-source) %>% 
+      spread(variable, value)) %>% 
+    mutate(variable = "EE") %>% 
+    mutate(value=E_TotFeC/E_TotPeS) %>% 
+    select(-E_TotFeC, -E_TotPeS) %>% 
+    mutate(longname = "Energy efficiency as the ratio of total final energy consumption over total primary energy supply") %>% 
+    mutate(source="IEA2016 - WEB + Own calculation") %>% 
+    mutate(unit="Unitless") %>% 
+    select(country, iso, year, variable, longname, source, unit, value))
+v_data <- rbind(v_data,
+                left_join(
+                  v_data %>% 
+                    filter(variable == "E_TotPeS") %>% 
+                    select(-longname) %>% 
+                    select(-unit) %>% 
+                    select(-source) %>% 
+                    spread(variable, value),
+                  v_data %>% 
+                    filter(variable == "CO2", source=="CDIAC") %>% 
+                    select(-longname) %>% 
+                    select(-unit) %>% 
+                    select(-source) %>% 
+                    spread(variable, value)) %>% 
+                  mutate(variable = "EF") %>% 
+                  mutate(value=CO2/E_TotPeS) %>% 
+                  select(-CO2, -E_TotPeS) %>% 
+                  mutate(longname = "Emission intensity as the ratio of CO2 over total primary energy supply") %>% 
+                  mutate(source="IEA2016 - WEB + Own calculation") %>% 
+                  mutate(unit="Mt(CO2)/GJ") %>% 
+                  select(country, iso, year, variable, longname, source, unit, value))
 
 p_data = v_data
 

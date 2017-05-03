@@ -2,6 +2,8 @@
 \usepackage{graphicx, color, framed, alltt}
 \usepackage{fullpage}
 \usepackage{pdflscape}
+\usepackage{longtable}
+\usepackage{url}
 
 \title{Coal tree: Check data}
 \author{Jerome Hilaire (MCC)}
@@ -9,19 +11,32 @@
 
 \begin{document}
 \maketitle
+\tableofcontents
+\clearpage
 
 <<label="init", echo=FALSE, message=FALSE, warning=FALSE, results='hide'>>=
-source("../scripts/user_settings.R")
 u_mode = "knitr"
+source("../scripts/user_settings.R")
 source("../scripts/init.R")
-u_mode = "R"
+source("../scripts/process_data.R")
 @
 
 \section{User settings}
 
-Data path: \texttt{\Sexpr{u_path$data}}
-
+Data path: \url{\Sexpr{u_path$data}} \\
 Period: \Sexpr{u_period[1]}-\Sexpr{u_period[2]}
+
+\section{Input summary}
+
+<<label='input_summary', warning=FALSE, message=FALSE, echo=FALSE, results='asis'>>=
+  tmp <- data.frame(
+    Category = c("Number of countries", "Number of countries"),
+    Value    = c(length(unique(v_dataShort$iso)), length(unique(v_dataShort$variable))) 
+  )
+  
+  kable(tmp, caption = "Summary of input variables and parameters", longtable=TRUE)
+  
+@
 
 
 \section{Preprocessed data}
@@ -30,173 +45,46 @@ Period: \Sexpr{u_period[1]}-\Sexpr{u_period[2]}
 \subsubsection{Variable definition}
 
 \begin{landscape}
+\tiny
 <<label="vardef", warning=FALSE, message=FALSE, echo=FALSE, results='asis'>>=
 tmp <- cbind(
   data.frame(ID=1:length(v_variables)), 
   v_dataLong[which(duplicated(v_dataLong$variable) == FALSE),c("variable", "longname", "unit", "source")])
 tmp$longname <- substr(tmp$longname, 1, 50)
 row.names(tmp) <- NULL
-kable(tmp, caption = "Definition of selected variables.")
+kable(tmp, caption = "Definition of selected variables.", longtable=TRUE)
 @
 \end{landscape}
+
 
 \subsection{Descriptive statistics}
 
 \begin{landscape}
-<<label="table", warning=FALSE, message=FALSE, echo=FALSE, results='asis'>>=
-# tab <- xtable(compute_stats(v_data))
-# print(tab, type="latex")
-
-kable(cbind(data.frame(ID=1:length(v_variables)), compute_stats(v_dataShort) %>% slice(match(v_variables, variable))), caption = "Descriptive statistics of selected variables.")
+\tiny
+<<label="table_descStatSummary", warning=FALSE, message=FALSE, echo=FALSE, results='asis'>>=
+kable(cbind(data.frame(ID=1:length(v_variables)), compute_stats(v_dataShort) %>% slice(match(v_variables, variable))), caption = "Descriptive statistics of selected variables.", longtable=TRUE)
 @
 \end{landscape}
-
-\subsection{Dependent variable Coal consumption}
-<<label="CC_fig_preps", echo=FALSE, warning=FALSE, message=FALSE, results='hide'>>=
-cnts <- rank_country(p_data, "max", "E_CC", "IEA2016 - WEB")
-cnts <- cnts[which(!cnts %in% get_countryWith0s(p_data, "E_CC", "IEA2016 - WEB"))]
-
-tmp <- p_data %>%
-    mutate(year = as.numeric(year)) %>%
-    filter(variable == "E_CC",
-#           source == "IEA2016 - WEB",
-           iso %in% cnts) %>%
-    select(iso,year,source, value) %>%
-    mutate(iso=factor(iso, levels=cnts, ordered=TRUE)) %>%
-    mutate(source=factor(source))
-
-max = 6*6
-@
-
-<<label="fig_E_CC1", echo=FALSE, warning=FALSE, message=FALSE, fig.height=10, fig.width=10, fig.cap='Coal consumption (Countries 1-36)'>>=
-k = 0
-
-qplot(x=year, y=value, data=tmp %>% filter(iso %in% cnts[(1+k*max):(max+k*max)]), colour=source, geom=c("point", "line")) +
-  facet_wrap(~iso, ncol=6, scales="free_y") +
-  theme_bw() +
-  theme(legend.position="bottom")
-@
-
-<<label="fig_E_CC2", echo=FALSE, warning=FALSE, message=FALSE, fig.height=10, fig.width=10, fig.cap='Coal consumption (Countries 37-72)'>>=
-k = 1
-
-qplot(x=year, y=value, data=tmp %>% filter(iso %in% cnts[(1+k*max):(max+k*max)]), colour=source, geom=c("point", "line")) +
-  facet_wrap(~iso, ncol=6, scales="free_y") +
-  theme_bw() +
-  theme(legend.position="bottom")
-@
-
-<<label="fig_E_CC3", echo=FALSE, warning=FALSE, message=FALSE, fig.height=10, fig.width=10, fig.cap='Coal consumption (Countries 72-108)'>>=
-k = 2
-
-qplot(x=year, y=value, data=tmp %>% filter(iso %in% cnts[(1+k*max):(max+k*max)]), colour=source, geom=c("point", "line")) +
-  facet_wrap(~iso, ncol=6, scales="free_y") +
-  theme_bw() +
-  theme(legend.position="bottom")
-@
-
-\section{Processed data}
-\subsection{Correlations}
-
-Main factors
-<<label="Correlations1", echo=FALSE, fig.height=10, fig.width=10, fig.cap='Correlation of selected variables'>>=
-col <- colorRampPalette(c("#BB4444", "#EE9988", "#FFFFFF", "#77AADD", "#4477AA"))
-tmp <- v_dataShortProc %>% 
-  filter(variable %in% paste0("log_", c("E_CC", "GDP", "GDPpc", "P", "P_Ndep", "Inst", "URB", "PDen", "Elec_C", "GINI", "LEx"))) %>% 
-  spread(variable, value) %>% 
-  select(-iso, -year)
-mat <- cor(tmp, use="pairwise.complete.obs")
-corrplot(mat, method="color", col=col(200),  
-         type="upper", 
-         addCoef.col = "black", # Add coefficient of correlation
-         tl.col="black", tl.srt=45, #Text label color and rotation
-         # Combine with significance
-         p.mat = cor.mtest(mat), sig.level = 0.01, insig = "blank", 
-         # hide correlation coefficient on the principal diagonal
-         diag=FALSE 
-         )
-@
-Other coal variables
-<<label="Correlations2", echo=FALSE, fig.height=10, fig.width=10, fig.cap='Correlation of selected variables'>>=
-tmp <- v_dataShortProc %>% 
-  filter(variable %in% paste0("log_", c("E_CC", "E_CP", "E_CIm", "E_CEx", "E_CE", "Elec_C", "E_CRe"))) %>% 
-  spread(variable, value) %>% 
-  select(-iso, -year)
-mat <- cor(tmp, use="pairwise.complete.obs")
-corrplot(mat, method="color", col=col(200),  
-         type="upper", 
-         addCoef.col = "black", # Add coefficient of correlation
-         tl.col="black", tl.srt=45, #Text label color and rotation
-         # Combine with significance
-         p.mat = cor.mtest(mat), sig.level = 0.01, insig = "blank", 
-         # hide correlation coefficient on the principal diagonal
-         diag=FALSE 
-         )
-@
-Structural effects
-<<label="Correlations3", echo=FALSE, fig.height=10, fig.width=10, fig.cap='Correlation of selected variables'>>=
-tmp <- v_dataShortProc %>% 
-  filter(variable %in% paste0("log_", c("E_CC", "GDP_Ag", "GDP_Ind", "GDP_Ser", "GDP_Tra", "Manu", "Manu_Ex"))) %>% 
-  spread(variable, value) %>% 
-  select(-iso, -year)
-mat <- cor(tmp, use="pairwise.complete.obs")
-corrplot(mat, method="color", col=col(200),  
-         type="upper", 
-         addCoef.col = "black", # Add coefficient of correlation
-         tl.col="black", tl.srt=45, #Text label color and rotation
-         # Combine with significance
-         p.mat = cor.mtest(mat), sig.level = 0.01, insig = "blank", 
-         # hide correlation coefficient on the principal diagonal
-         diag=FALSE 
-         )
-@
-Substitution effects
-<<label="Correlations4", echo=FALSE, fig.height=10, fig.width=10, fig.cap='Correlation of selected variables'>>=
-tmp <- v_dataShortProc %>% 
-  filter(variable %in% paste0("log_", c("E_CC", "E_OC", "E_GC", "E_NC", "E_HC", "E_RC", "E_BC"))) %>% 
-  spread(variable, value) %>% 
-  select(-iso, -year)
-mat <- cor(tmp, use="pairwise.complete.obs")
-corrplot(mat, method="color", col=col(200),  
-         type="upper", 
-         addCoef.col = "black", # Add coefficient of correlation
-         tl.col="black", tl.srt=45, #Text label color and rotation
-         # Combine with significance
-         p.mat = cor.mtest(mat), sig.level = 0.01, insig = "blank", 
-         # hide correlation coefficient on the principal diagonal
-         diag=FALSE 
-         )
-@
-Pollution
-<<label="Correlations5", echo=FALSE, fig.height=10, fig.width=10, fig.cap='Correlation of selected variables'>>=
-tmp <- v_dataShortProc %>% 
-  filter(variable %in% paste0("log_", c("E_CC", "CO2", "AP_pm25mae", "AP_pm25pe"))) %>% 
-  spread(variable, value) %>% 
-  select(-iso, -year)
-mat <- cor(tmp, use="pairwise.complete.obs")
-corrplot(mat, method="color", col=col(200),  
-         type="upper", 
-         addCoef.col = "black", # Add coefficient of correlation
-         tl.col="black", tl.srt=45, #Text label color and rotation
-         # Combine with significance
-         p.mat = cor.mtest(mat), sig.level = 0.01, insig = "blank", 
-         # hide correlation coefficient on the principal diagonal
-         diag=FALSE 
-         )
-@
 
 \begin{landscape}
-<<label="Pairs1", echo=FALSE, warning=FALSE, message=FALSE, fig.height=10, fig.width=14, ig.cap='Correlation of selected variables'>>=
-tmp <- v_dataShortProc %>% 
-  filter(variable %in% paste0("log_", c("E_CC", "GDP", "GDPpc", "P", "P_Ndep", "Inst", "URB", "PDen", "Elec_C", "GINI", "LEx"))) %>% 
-    spread(variable, value) %>% 
-    select(-iso, -year)
-ggpairs(tmp)
+\tiny
+<<label="table_descStat_byCountry", warning=FALSE, message=FALSE, echo=FALSE, results='asis'>>=
+tmp <- v_dataShort %>%
+ filter(variable == "E_CC") %>%
+ select(-variable) %>%
+ group_by(iso) %>%
+ arrange(year) %>%
+ summarize(value=sum(value, na.rm=TRUE)) %>%
+ ungroup() %>%
+ arrange(desc(value))
+
+iso_lvls = tmp$iso
+
+for (kiso in iso_lvls[1:10]) {
+  cat(paste0("\\subsubsection{", kiso, "}\n"))
+  kable(cbind(data.frame(ID=1:length(v_variables)), compute_stats(v_dataShort %>% filter(iso == kiso)) %>% slice(match(v_variables, variable))), caption = paste0("Descriptive statistics of selected variables in ", kiso), longtable=TRUE)
+}
 @
 \end{landscape}
-
-\section{Statistical tests}
-\subsection{Hausman test}
-
 
 \end{document}

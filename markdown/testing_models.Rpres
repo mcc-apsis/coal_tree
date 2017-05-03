@@ -1,0 +1,98 @@
+Testing models: OLS, fixed effects, first differences
+========================================================
+author: Jerome Hilaire
+date: 8th March 2017
+autosize: true
+css: custom.css
+
+```{r, warning=FALSE ,echo=FALSE, message=FALSE, comment=FALSE}
+u_mode = "knitr"
+#==== Initialise ========================
+source("../scripts/user_settings.R")
+source("../scripts/init.R")
+source("../scripts/process_data.R")
+
+#==== Load data ===================
+load("../output/dataSlides/testing_methods_2017-04-26.RData")
+```
+
+
+
+Standard OLS
+========================================================
+type: exclaim
+
+```{r, echo=FALSE, fig.ext="svg", fig.align='center', fig.height=11, fig.width=13}
+
+k_case <- "testingMethods - OLS"
+
+tree  <- as.fake.rpart.tree(v_tree[[k_case]])
+title <- paste0(
+  "RT - ", k_case, 
+  "\nLMS-Multilinear - Tn:", length(which(v_tree[[k_case]]$nodeType == "Terminal node")), 
+  "\n#Countries: ",length(unique(v_data[[k_case]]$iso)), 
+  " - period: ",   min(v_data[[k_case]]$year),"-",max(v_data[[k_case]]$year))
+plot_tree(tree,
+          TITLE=title,
+          CEX=NULL, LEGEND.X = 0, LEGEND.Y = 1.1, LEGEND.CEX=1, LEGEND.NCOL=2)
+
+```
+
+<!-- Standard OLS - Changing period length -->
+<!-- ======================================================== -->
+<!-- type: exclaim -->
+
+<!-- ```{r, echo=FALSE, results='asis', fig.ext="svg"} -->
+<!-- for (k_case in names(v_tree)[grep("OLS (", names(v_tree), fixed = TRUE)]) { -->
+<!--   tree  <- as.fake.rpart.tree(v_tree[[k_case]]) -->
+<!--   title <- paste0( -->
+<!--     "RT - ", k_case,  -->
+<!--     "\nLMS-Multilinear - Tn:", length(which(v_tree[[k_case]]$nodeType == "Terminal node")),  -->
+<!--     "\n#Countries: ",length(unique(v_data[[k_case]]$iso)),  -->
+<!--     " - period: ",   min(v_data[[k_case]]$year),"-",max(v_data[[k_case]]$year)) -->
+<!--   plot_tree(tree, -->
+<!--             TITLE=title, -->
+<!--             CEX=NULL, LEGEND.X = 0, LEGEND.Y = 1.1, LEGEND.CEX=0.8, LEGEND.NCOL=2) -->
+<!-- } -->
+
+<!-- ``` -->
+
+Fixed-effects model
+========================================================
+type: exclaim
+
+```{r, echo=FALSE, fig.ext="svg", fig.align='center', fig.height=11, fig.width=13}
+
+k_case <- "testingMethods - Fixed effects"
+
+tree  <- as.fake.rpart.tree(v_tree[[k_case]])
+title <- paste0(
+  "RT - ", k_case, 
+  "\nLMS-Multilinear - Tn:", length(which(v_tree[[k_case]]$nodeType == "Terminal node")), 
+  "\n#Countries: ",length(unique(v_data[[k_case]]$iso)), 
+  " - period: ",   min(v_data[[k_case]]$year),"-",max(v_data[[k_case]]$year))
+plot_tree(tree,
+          TITLE=title,
+          CEX=NULL, LEGEND.X = 0, LEGEND.Y = 1.1, LEGEND.CEX=1, LEGEND.NCOL=2)
+
+```
+
+First-differences model
+========================================================
+type: exclaim
+
+```{r, echo=FALSE, fig.ext="svg", fig.align='center', fig.height=11, fig.width=13}
+
+k_case <- "testingMethods - First-differences"
+
+tree  <- as.fake.rpart.tree(v_tree[[k_case]])
+title <- paste0(
+  "RT - ", k_case, 
+  "\nLMS-Multilinear - Tn:", length(which(v_tree[[k_case]]$nodeType == "Terminal node")), 
+  "\n#Countries: ",length(unique(v_data[[k_case]]$iso)), 
+  " - period: ",   min(v_data[[k_case]]$year),"-",max(v_data[[k_case]]$year))
+plot_tree(tree,
+          TITLE=title,
+          CEX=NULL, LEGEND.X = 0, LEGEND.Y = 1.1, LEGEND.CEX=1, LEGEND.NCOL=2)
+
+```
