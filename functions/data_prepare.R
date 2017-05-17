@@ -42,14 +42,14 @@ filter_X <- function(i_data, i_vardef) {
   
   # Get selected variable names 
   varnames <- paste(i_vardef$variable[which(i_vardef$type != "x")])
-  
+
   # Select variables
   i_data <- i_data[,c("iso","year",varnames)]
   
   return(i_data)
 }
 
-filter_zeros <- function(i_data, i_vardef) {
+filter_zeros <- function(i_data, i_vardef, eps=0.00001) {
   
   # Get selected dependent variable name
   dvarname <- paste(i_vardef$variable[which(i_vardef$type == "d")])
@@ -64,8 +64,24 @@ filter_zeros <- function(i_data, i_vardef) {
     select(iso)
   
   i_data <- i_data %>% 
-    filter(iso %in% tmp$iso)
-  
+    filter(iso %in% tmp$iso) 
+
+  tmp <- i_data %>% 
+    gather(variable,value,-iso,-year) %>% 
+    group_by(iso,variable) %>%
+    filter(value != 0) %>%  
+    summarise(min_val = min(value)) %>% 
+    ungroup()
+
+  i_data <- i_data %>% 
+    gather(variable,value,-iso,-year) %>% 
+    left_join(tmp,
+              by=c("iso","variable")) %>% 
+    mutate(value=ifelse(value == 0, min_val*1e-3, value)) %>% 
+    select(-min_val) %>%
+    mutate(value = ifelse(!is.finite(value), eps, value)) %>% 
+    spread(variable,value)
+
   return(i_data)
 }
 
@@ -117,6 +133,20 @@ applyFirstDiff <- function(i_data, i_vardef) {
   }
   
   return(i_data)
+}
+
+getVariableMeans <- function(i_data, i_vardef, GROUPBY="iso", VERBOSE=FALSE) {
+  # Get names of numerical variables
+  numVarnames <- paste((i_vardef %>% filter(type %in% c("d", "n", "f", "s")))$variable)
+
+  out <- i_data %>% 
+    gather(variable, value, -iso, -year) %>% 
+    filter(variable %in% numVarnames) %>% 
+    group_by(iso, variable) %>%
+    summarise(mean=mean(value, na.rm=TRUE)) %>% 
+    ungroup()
+  
+  return(out)
 }
 
 demeanVariable <- function(i_data, i_vardef, GROUPBY="iso", VERBOSE=FALSE) {
@@ -231,7 +261,7 @@ data_prepare <- function(i_data, i_vardef, period_start, period_end, MISSINGRATI
   if (VERBOSE) cat("> Rescaling numerical variables...\n")
   i_data %<>% rescaleVariable(i_vardef, VERBOSE=VERBOSE)
   
-  # Transform variables
+  # Transform variables (e.g. log)
   if (VERBOSE) cat("> Transforming numerical variables...\n")
   i_data %<>% transformVariable(i_vardef, VERBOSE=VERBOSE)
   
@@ -244,12 +274,16 @@ data_prepare <- function(i_data, i_vardef, period_start, period_end, MISSINGRATI
   # Demean variables
   if (DEMEAN) {
     if (VERBOSE) cat("> Demeaning numerical variables...\n")
+    data_mean <- i_data %>% getVariableMeans(i_vardef, VERBOSE=VERBOSE)
     i_data %<>% demeanVariable(i_vardef, VERBOSE=VERBOSE)
+  } else {
+    data_mean <- NULL
   }
+  
   
   # Rename transformed variables in data
   if (VERBOSE) cat("> Renaming transformed variables...\n")
   i_data %<>% renameVariable(i_vardef, VERBOSE=VERBOSE)
   
-  return(i_data)
+  return(list("data"=i_data, "datamean"=data_mean))
 }

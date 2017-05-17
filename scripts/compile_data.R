@@ -18,6 +18,8 @@ u_fpath = list()
 u_fpath$BP      = "BP/BP2016 - statistical-review-of-world-energy-2016-workbook.xlsx" 
 u_fpath$BGR     = "BGR/BGR2016 - Energiestudie_2016_Tabellen.xlsx" 
 u_fpath$IEAWEB  = "IEA/IEA2016 - World Energy Balances.csv"
+u_fpath$IEAWEB2 = "IEA/pes.csv"
+u_fpath$IEAWEB3 = "IEA/coal energy statistics.csv"
 u_fpath$IEACES  = "IEA/IEA2016 - Coal Energy Statistics.csv"
 u_fpath$WDI     = "WDI/WDI_Data.csv"
 u_fpath$COW     = "COW/"
@@ -40,11 +42,11 @@ u_convert$QBtu_to_EJ   = 1.05505585     # Million Quadrillion BTUs (1e15 BTUs) t
 
 # Accent conversion
 # Adapted from http://stackoverflow.com/questions/20495598/replace-accented-characters-in-r-with-non-accented-counterpart-utf-8-encoding
-# u_accentreplace = list(   '≈†'='S',  '≈°'='s', '≈Ω'='Z',  '≈æ'='z', '√Ä'='A', '√Å'='A',  '√Ç'='A', '√É'='A', '√Ñ'='AE', '√Ö'='A', '√Ü'='A',  '√á'='C',  '√à'='E', '√â'='E',
-#                           '√ä'='E',  '√ã'='E', '√å'='I',  '√ç'='I', '√é'='I', '√è'='I',  '√ë'='N', '√í'='O', '√ì'='O',  '√î'='O', '√ï'='O',  '√ñ'='OE', '√ò'='O', '√ô'='U',
-#                           '√ö'='U',  '√õ'='U', '√ú'='UE', '√ù'='Y', '√û'='B', '√ü'='Ss', '√†'='a', '√°'='a', '√¢'='a',  '√£'='a', '√§'='ae', '√•'='a',  '√¶'='a', '√ß'='c',
-#                           '√®'='e',  '√©'='e', '√™'='e',  '√´'='e', '√¨'='i', '√≠'='i',  '√Æ'='i', '√Ø'='i', '√∞'='o',  '√±'='n', '√≤'='o',  '√≥'='o',  '√¥'='o', '√µ'='o',
-#                           '√∂'='oe', '√∏'='o', '√π'='u',  '√∫'='u', '√ª'='u', '√º'='ue', '√Ω'='y', '√Ω'='y', '√æ'='b',  '√ø'='y' )
+# u_accentreplace = list(   'S'='S',  's'='s', 'Z'='Z',  'z'='z', '¿'='A', '¡'='A',  '¬'='A', '√'='A', 'ƒ'='AE', '≈'='A', '∆'='A',  '«'='C',  '»'='E', '…'='E',
+#                           ' '='E',  'À'='E', 'Ã'='I',  'Õ'='I', 'Œ'='I', 'œ'='I',  '—'='N', '“'='O', '”'='O',  '‘'='O', '’'='O',  '÷'='OE', 'ÿ'='O', 'Ÿ'='U',
+#                           '⁄'='U',  '€'='U', '‹'='UE', '›'='Y', 'ﬁ'='B', 'ﬂ'='Ss', '‡'='a', '·'='a', '‚'='a',  '„'='a', '‰'='ae', 'Â'='a',  'Ê'='a', 'Á'='c',
+#                           'Ë'='e',  'È'='e', 'Í'='e',  'Î'='e', 'Ï'='i', 'Ì'='i',  'Ó'='i', 'Ô'='i', ''='o',  'Ò'='n', 'Ú'='o',  'Û'='o',  'Ù'='o', 'ı'='o',
+#                           'ˆ'='oe', '¯'='o', '˘'='u',  '˙'='u', '˚'='u', '¸'='ue', '˝'='y', '˝'='y', '˛'='b',  'ˇ'='y' )
 
 
 #---------------------------------------------
@@ -75,8 +77,18 @@ get_missing_countries <- function(i_data, i_countryList) {
 rename_countries <- function(i_data, i_nameMapping, i_countryList) {
   
   for (k in 1:length(i_nameMapping)) {
+    # if (grepl("Korea", names(i_nameMapping)[k])) {
+    #   print(paste(names(i_nameMapping)[k], "  ->  ", i_nameMapping)[k])
+    #   print(i_data %>% filter(grepl(names(i_nameMapping)[k], country, fixed=TRUE), year == 2000))
+    # }
     i_data <- i_data %>% 
       mutate(country = ifelse(country == names(i_nameMapping)[k], paste(i_nameMapping[k]), country))
+      #mutate(country = ifelse(grepl(names(i_nameMapping)[k], country, fixed=TRUE), paste(i_nameMapping[k]), country))
+    
+    # if (grepl("Korea", names(i_nameMapping)[k])) {
+    #   print(i_data %>% filter(country == paste(i_nameMapping[k]), year == 2000))
+    #   cat("\n")
+    # }
   }
   missing_countries <- get_missing_countries(i_data, i_countryList)
   
@@ -148,21 +160,21 @@ get_BGRdata <- function(i_xlsxFile, i_sheet, i_startRow, i_variable, i_unit, i_l
   
   country_nameMapping <- c(
     "Albanien"                = "Albania",
-    "√Ñthiopien"               = "Ethiopia",
+    "ƒthiopien"               = "Ethiopia",
     "Dominikanische Rep."     = "Dominican Republic",
     "Kroatien"                = "Croatia",
     "Mazedonien"              = "Macedonia (the former Yugoslav Republic of)",
-    "√ñsterreich"              = "Austria",
-    "Wei√ürussland"            = "Belarus",
+    "÷sterreich"              = "Austria",
+    "Weiﬂrussland"            = "Belarus",
     "Zentralafrikanische Rep."= "Central African Republic",
-    "√Ñgypten"                 = "Egypt",
+    "ƒgypten"                 = "Egypt",
     "Algerien"                = "Algeria",
     "Armenien"                = "Armenia",
     "Bangladesch"             = "Bangladesh",
     "Belgien"                 = "Belgium",
     "Bolivien"                = "Bolivia (Plurinational State of)",
     "Georgien"                = "Georgia",
-    "Gr√∂nland"                = "Greenland",
+    "Grˆnland"                = "Greenland",
     "Irland"                  = "Ireland",
     "Kongo, DR"               = "Congo (Democratic Republic of the)",
     "Laos"                    = "Lao People's Democratic Republic",
@@ -179,10 +191,10 @@ get_BGRdata <- function(i_xlsxFile, i_sheet, i_startRow, i_variable, i_unit, i_l
     "Tansania"                = "Tanzania, United Republic of",
     "USA"                     = "United States of America",
     "Venezuela"               = "Venezuela (Bolivarian Republic of)",
-    "Russische F√∂deration"    = "Russian Federation",
+    "Russische Fˆderation"    = "Russian Federation",
     "Australien"              = "Australia",
-    "S√ºdafrika"               = "South Africa",
-    "Vereinigtes K√∂nigreich"  = "United Kingdom of Great Britain and Northern Ireland",
+    "S¸dafrika"               = "South Africa",
+    "Vereinigtes Kˆnigreich"  = "United Kingdom of Great Britain and Northern Ireland",
     "Kanada"                  = "Canada",
     "Kolumbien"               = "Colombia",
     "Indien"                  = "India",
@@ -202,10 +214,10 @@ get_BGRdata <- function(i_xlsxFile, i_sheet, i_startRow, i_variable, i_unit, i_l
     "Mexiko"                  = "Mexico", 
     "Vietnam"                 = "Viet Nam",
     "Serbien"                 = "Serbia",
-    "Rum√§nien"                = "Romania",
+    "Rum‰nien"                = "Romania",
     "Argentinien"             = "Argentina",
     "Neuseeland"              = "New Zealand",
-    "T√ºrkei"                  = "Turkey",
+    "T¸rkei"                  = "Turkey",
     "Griechenland"            = "Greece",
     "Ungarn"                  = "Hungary",
     "Bosnien & Herzegowina"   = "Bosnia and Herzegovina",
@@ -222,7 +234,7 @@ get_BGRdata <- function(i_xlsxFile, i_sheet, i_startRow, i_variable, i_unit, i_l
   
   tmp <- read.xlsx(xlsxFile = i_xlsxFile, sheet = i_sheet, startRow = i_startRow, na.strings = c("k.A.", "-", "< 0,05"))
 
-  if (i_sheet %in% c("s. 27, √úbersicht Hartkohle,...", "s. 34, √úbersicht Weichbraun...")) {
+  if (i_sheet %in% c("s. 27, ‹bersicht Hartkohle,...", "s. 34, ‹bersicht Weichbraun...")) {
     
     if (grepl("reserves", tolower(i_longname))) {
       tmp <- tmp[1:(which(grepl("Welt", tmp$Region))-1), c(1,3)]
@@ -236,7 +248,7 @@ get_BGRdata <- function(i_xlsxFile, i_sheet, i_startRow, i_variable, i_unit, i_l
     
     tmp <- tmp %>%
       rename(country = Region) %>% 
-      # mutate(country = ifelse(length(which(sapply(names(u_accentreplace), function(x) grepl(x, "T√ºrkei")))) != 0,
+      # mutate(country = ifelse(length(which(sapply(names(u_accentreplace), function(x) grepl(x, "T¸rkei")))) != 0,
       #                         paste(sapply(names(which(sapply(names(u_accentreplace), function(x) grepl(x, country)))), 
       #                                      function(y) gsub(y, paste(u_accentreplace[[which(names(u_accentreplace) == y)]]), country))),
       #                         country)) %>% 
@@ -257,7 +269,7 @@ get_BGRdata <- function(i_xlsxFile, i_sheet, i_startRow, i_variable, i_unit, i_l
     tmp <- tmp[1:(which(grepl("sonstige L", tmp$`Land/Region`))-1), c(2,3)]
     tmp <- tmp %>%
       rename(country = `Land/Region`) %>% 
-      # mutate(country = ifelse(length(which(sapply(names(u_accentreplace), function(x) grepl(x, "T√ºrkei")))) != 0,
+      # mutate(country = ifelse(length(which(sapply(names(u_accentreplace), function(x) grepl(x, "T¸rkei")))) != 0,
       #                         paste(sapply(names(which(sapply(names(u_accentreplace), function(x) grepl(x, country)))), 
       #                                      function(y) gsub(y, paste(u_accentreplace[[which(names(u_accentreplace) == y)]]), country))),
       #                         country)) %>% 
@@ -272,7 +284,7 @@ get_BGRdata <- function(i_xlsxFile, i_sheet, i_startRow, i_variable, i_unit, i_l
       rename_countries(country_nameMapping, i_countryList)
   }
   
-  if (i_sheet %in% c("30", "37", "30, Hartkohlef√∂rderung 2015", "37, Weichbraunkohlef√∂rderun...")) {
+  if (i_sheet %in% c("30", "37", "30, Hartkohlefˆrderung 2015", "37, Weichbraunkohlefˆrderun...")) {
     tmp <- tmp[1:(which(grepl("sonstige L", tmp$`Land/Region`))-1), c(2,which(grepl("Mt", names(tmp))))]
     
     names(tmp)[which(grepl("Mt", names(tmp)))] <- substr(names(tmp)[which(grepl("Mt", names(tmp)))], 1,4)
@@ -303,10 +315,10 @@ get_IEAWEBdata <- function(i_csvFile, i_product, i_flow, i_variable, i_unit, i_l
   
   country_nameMapping <- c(
     "China (P.R. of China and Hong Kong, China)" = "China",
-    "C√¥te d'Ivoire"                              = "Cote d'Ivoire",
+    "CÙte d'Ivoire"                              = "Cote d'Ivoire",
     "Bolivia"                                    = "Bolivia (Plurinational State of)",
     #"People's Republic of China"                 = "China",
-    "Cura√ßao"                                    = "Curacao",
+    "CuraÁao"                                    = "Curacao",
     "Czech Republic"                             = "Czechia",
     "Dem. People's Rep. of Korea"                = "Korea (Democratic People's Republic of)",
     "Dem. Republic of the Congo"                 = "Congo (Democratic Republic of the)",
@@ -348,16 +360,66 @@ get_IEAWEBdata <- function(i_csvFile, i_product, i_flow, i_variable, i_unit, i_l
   
 }
 
+get_IEAWEBdata2 <- function(i_csvFile, i_product, i_variable, i_unit, i_longname, i_source, i_countryList, i_unitFactor=1) {
+  
+  if (DEBUG) cat(paste0(">> get_IEAWEBdata2: ",i_variable," (",i_longname," - ",i_unit,")\n"))
+  
+  country_nameMapping <- c(
+    "China (P.R. of China and Hong Kong, China)" = "China",
+    "CÙte d'Ivoire"                              = "Cote d'Ivoire",
+    "Bolivia"                                    = "Bolivia (Plurinational State of)",
+    #"People's Republic of China"                 = "China",
+    "CuraÁao"                                    = "Curacao",
+    "Czech Republic"                             = "Czechia",
+    "Dem. People's Rep. of Korea"                = "Korea (Democratic People's Republic of)",
+    "Dem. Republic of the Congo"                 = "Congo (Democratic Republic of the)",
+    "Former Yugoslav Republic of Macedonia"      = "Macedonia (the former Yugoslav Republic of)",
+    "Hong Kong, China"                           = "Hong Kong",
+    "Islamic Republic of Iran"                   = "Iran (Islamic Republic of)",
+    "Korea"                                      = "Korea (Republic of)",
+    "Moldova"                                    = "Moldova (Republic of)",
+    "Slovak Republic"                            = "Slovakia",
+    "Chinese Taipei"                             = "Taiwan, Province of China",
+    "Tanzania"                                   = "Tanzania, United Republic of",
+    "United Kingdom"                             = "United Kingdom of Great Britain and Northern Ireland",
+    "Venezuela"                                  = "Venezuela (Bolivarian Republic of)",
+    "United States"                              = "United States of America")
+  
+  tmp <- read.csv(i_csvFile, stringsAsFactors = FALSE) %>% 
+    filter(COUNTRY != "World") %>% 
+    filter(PRODUCT == i_product)
+  
+  names(tmp)[which(grepl("X", names(tmp)))] <- substr(names(tmp)[which(grepl("X", names(tmp)))], 2,5)
+  names(tmp) <- tolower(names(tmp))
+  
+  tmp <- tmp %>% 
+    gather(year, value, -country, -product) %>% 
+    mutate(value    = as.numeric(value)*i_unitFactor) %>% 
+    mutate(unit     = i_unit) %>% 
+    mutate(variable = i_variable) %>% 
+    mutate(longname = i_longname) %>% 
+    mutate(source   = i_source) %>% 
+    select(country,year,variable,longname,source,unit,value) %>% 
+    rename_countries(country_nameMapping, i_countryList)
+  
+  tmp <- i_countryList %>% 
+    right_join(tmp,
+               by=c("country"))
+  
+  return(tmp)
+  
+}
+
 get_WDIdata <- function(i_csvFile, i_indicator, i_variable, i_unit, i_longname, i_source, i_countryList, i_unitFactor=1) {
   
   if (DEBUG) cat(paste0(">> get_WDIdata: ",i_variable," (",i_longname," - ",i_unit,")\n"))
   
   country_nameMapping <- c(
     "China (P.R. of China and Hong Kong, China)" = "China",
-    "C√¥te d'Ivoire"                              = "Cote d'Ivoire",
+    "CÙte d'Ivoire"                              = "Cote d'Ivoire",
     "Bolivia"                                    = "Bolivia (Plurinational State of)",
     #"People's Republic of China"                 = "China",
-    "Cura√ßao"                                    = "Curacao",
+    "CuraÁao"                                    = "Curacao",
     "Czech Republic"                             = "Czechia",
     "Dem. People's Rep. of Korea"                = "Korea (Democratic People's Republic of)",
     "Dem. Republic of the Congo"                 = "Congo (Democratic Republic of the)",
@@ -365,7 +427,6 @@ get_WDIdata <- function(i_csvFile, i_indicator, i_variable, i_unit, i_longname, 
     "Hong Kong, China"                           = "Hong Kong",
     "Islamic Republic of Iran"                   = "Iran (Islamic Republic of)",
     "Iran, Islamic Rep."                         = "Iran (Islamic Republic of)",
-    "Korea"                                      = "Korea (Republic of)",
     "Vietnam"                                    = "Viet Nam",
     "Kyrgyz Republic"                            = "Kyrgyzstan",
     "Moldova"                                    = "Moldova (Republic of)",
@@ -375,8 +436,8 @@ get_WDIdata <- function(i_csvFile, i_indicator, i_variable, i_unit, i_longname, 
     "United Kingdom"                             = "United Kingdom of Great Britain and Northern Ireland",
     "Venezuela"                                  = "Venezuela (Bolivarian Republic of)",
     "Hong Kong SAR, China"                       = "Hong Kong",
+    "Korea, Dem. People's Rep."                  = "Korea (Democratic People's Republic of)",
     "Korea, Rep."                                = "Korea (Republic of)",
-    "Korea, Dem. People‚Äôs Rep."                  = "Korea (Democratic People's Republic of)",
     "United States"                              = "United States of America",
     "Congo, Rep."                                = "Congo",
     "Congo, Dem. Rep."                           = "Congo (Democratic Republic of the)",
@@ -385,7 +446,6 @@ get_WDIdata <- function(i_csvFile, i_indicator, i_variable, i_unit, i_longname, 
     "Bahamas, The"                               = "Bahamas",
     "British Virgin Islands"                     = "", 
     #"Channel Islands"                            = "",
-    "Korea, Dem. People‚Äôs Rep."                  = "Korea (Democratic People's Republic of)",
     "Lao PDR"                                    = "Lao People's Democratic Republic",
     "Macao SAR, China"                           = "Macao",
     "Macedonia, FYR"                             = "Macedonia (the former Yugoslav Republic of)",
@@ -396,7 +456,8 @@ get_WDIdata <- function(i_csvFile, i_indicator, i_variable, i_unit, i_longname, 
     "St. Vincent and the Grenadines"             = "Saint Vincent and the Grenadines", 
     "Venezuela, RB"                              = "Venezuela (Bolivarian Republic of)",
     #"West Bank and Gaza"                         = "", 
-    "Yemen, Rep."                                = "Yemen")
+    "Yemen, Rep."                                = "Yemen") #,
+    #"Korea"                                      = "Korea (Republic of)")
   
   RDatafile <- file.path(dirname(i_csvFile), paste0(strsplit(basename(i_csvFile), ".", fixed=TRUE)[[1]][1], ".RData"))
   if (!file.exists(RDatafile)) {
@@ -428,12 +489,23 @@ get_WDIdata <- function(i_csvFile, i_indicator, i_variable, i_unit, i_longname, 
     mutate(variable = i_variable) %>% 
     mutate(longname = i_longname) %>% 
     mutate(source   = i_source) %>% 
-    select(country,year,variable,longname,source,unit,value) %>% 
+    select(country,year,variable,longname,source,unit,value)
+  
+  # print(tmp[which(grepl("Korea, Dem. People's Rep.", tmp$country)),])
+  # print(tmp[which(tmp$country == "Korea, Dem. People\\'s Rep."),])
+  # print(tmp %>% filter(grepl("Korea, Dem. People\\'s Rep.", country)))
+  # print(tmp %>% filter(country == "Korea, Dem. People\\'s Rep."))
+  
+  #write.csv2(tmp, file = "WDI_test_file.csv")
+  
+  tmp <- tmp %>% 
     rename_countries(country_nameMapping, i_countryList)
   
   tmp <- i_countryList %>% 
     right_join(tmp,
                by=c("country"))
+  
+  #print(tmp %>% filter(iso == "PRK"))
   
   return(tmp)
   
@@ -451,10 +523,10 @@ if (u_getCountriesFromWikipedia) {
     rename(country = `English short name (upper/lower case)`) %>% 
     rename(iso  = `Alpha-3 code`)
   # Correct/remove accents
-  countries$country <- gsub("√É¬¥", "o", countries$country)
-  countries$country <- gsub("√É¬ß", "c", countries$country)
-  countries$country <- gsub("√É¬©", "e", countries$country)
-  countries$country <- gsub("√É‚Ä¶", "A", countries$country)
+  countries$country <- gsub("√¥", "o", countries$country)
+  countries$country <- gsub("√ß", "c", countries$country)
+  countries$country <- gsub("√©", "e", countries$country)
+  countries$country <- gsub("√.", "A", countries$country)
   countries$country <- gsub("C4", "o", countries$country)
   countries$country <- gsub("C'", "c", countries$country)
   countries$country <- gsub("C)", "e", countries$country)
@@ -481,24 +553,45 @@ v_data <- rbind(v_data,
                            "E_CC", "GJ/yr", "Coal consumption", "BP 2016", 
                            countries, i_unitFactor=u_convert$Mtoe_to_GJ))
 
-# Source: BGR 2016
-# TODO:
-#  - Ask Andruleit to provide full tables for oil, coal and gas (reserves, resources, production, demand, import, export)
-v_data <- rbind(v_data,
-                get_BGRdata(u_fpath$BGR, "31, Hartkohleberbrauch 2015", 1,
-                            "E_CC", "Mt(coal)", "Coal consumption - Hard coal", "BGR 2016", 
-                            countries))
-
-v_data <- rbind(v_data,
-                get_BGRdata(u_fpath$BGR, "38, Weichbraunkohleverbrauc...", 1,
-                            "E_CC", "Mt(coal)", "Coal consumption - Lignite coal", "BGR 2016", 
-                            countries))
-
 # Source: IEA WEB 2016
 # TODO:
 v_data <- rbind(v_data,
                 get_IEAWEBdata(u_fpath$IEAWEB, "Coal and coal products", "Total final consumption", 
                                "E_CC", "GJ/yr", "Coal consumption", "IEA2016 - WEB", countries))
+
+
+#-- Coal consumption (Hard coal) -------------------------
+# Source: BGR 2016
+v_data <- rbind(v_data,
+                get_BGRdata(u_fpath$BGR, "31, Hartkohleberbrauch 2015", 1,
+                            "E_CChc", "Mt(coal)", "Coal consumption - Hard coal", "BGR 2016", 
+                            countries))
+
+# Source: IEA WEB 2016
+# TODO:
+v_data <- rbind(v_data,
+                get_IEAWEBdata(u_fpath$IEAWEB3, "Hard coal (if no detail) (kt)", "Final consumption", 
+                               "E_CChc", "GJ/yr", "Hard Coal consumption", "IEA2016 - WEB", countries))
+
+#-- Coal consumption (Brown coal) -------------------------
+# Source: BGR 2016
+v_data <- rbind(v_data,
+                get_BGRdata(u_fpath$BGR, "38, Weichbraunkohleverbrauc...", 1,
+                            "E_CCbc", "Mt(coal)", "Coal consumption - Lignite coal", "BGR 2016", 
+                            countries))
+
+# Source: IEA WEB 2016
+# TODO:
+v_data <- rbind(v_data,
+                get_IEAWEBdata(u_fpath$IEAWEB3, "Brown coal (if no detail) (kt)", "Final consumption", 
+                               "E_CCbc", "GJ/yr", "Brown Coal consumption", "IEA2016 - WEB", countries, i_unitFactor = 7.1*3.6e3))
+
+#-- Coal consumption (Lignite) -------------------------
+# Source: IEA WEB 2016
+# TODO:
+v_data <- rbind(v_data,
+                get_IEAWEBdata(u_fpath$IEAWEB3, "Lignite (kt)", "Final consumption", 
+                               "E_CCli", "GJ/yr", "Lignite consumption", "IEA2016 - WEB", countries, i_unitFactor = 7.1*3.6e3))
 
 
 #-- Coal production -------------------------
@@ -603,9 +696,9 @@ v_data <- rbind(v_data,
 v_data <- rbind(v_data,
                 get_IEAWEBdata(u_fpath$IEAWEB, "Coal and coal products", "Industry", 
                                "E_CSeInd", "Mt/yr", "Coal - Industry", "IEA2016 - WEB", countries))
-v_data <- rbind(v_data,
-                get_IEAWEBdata(u_fpath$IEAWEB, "Coal and coal products", "Agriculture/forestry", 
-                               "E_CSeInAgFo", "Mt/yr", "Coal - Agriculture & forestry", "IEA2016 - WEB", countries))
+# v_data <- rbind(v_data,
+#                 get_IEAWEBdata(u_fpath$IEAWEB, "Coal and coal products", "Agriculture/forestry", 
+#                                "E_CSeInAgFo", "Mt/yr", "Coal - Agriculture & forestry", "IEA2016 - WEB", countries))
 v_data <- rbind(v_data,
                 get_IEAWEBdata(u_fpath$IEAWEB, "Coal and coal products", "Iron and steel", 
                                "E_CSeInIS", "Mt/yr", "Coal - Iron and steel", "IEA2016 - WEB", countries))
@@ -615,33 +708,33 @@ v_data <- rbind(v_data,
 v_data <- rbind(v_data,
                 get_IEAWEBdata(u_fpath$IEAWEB, "Coal and coal products", "Textile and leather", 
                                "E_CSeInTL", "Mt/yr", "Coal - Textile and leather", "IEA2016 - WEB", countries))
-v_data <- rbind(v_data,
-                get_IEAWEBdata(u_fpath$IEAWEB, "Coal and coal products", "Paper, pulp and printing ", 
-                               "E_CSeInPPP", "Mt/yr", "Coal - Paper, pulp and printing", "IEA2016 - WEB", countries))
-v_data <- rbind(v_data,
-                get_IEAWEBdata(u_fpath$IEAWEB, "Coal and coal products", "Mining and quarrying", 
-                               "E_CSeInMQ", "Mt/yr", "Coal - Mining and quarrying", "IEA2016 - WEB", countries))
-v_data <- rbind(v_data,
-                get_IEAWEBdata(u_fpath$IEAWEB, "Coal and coal products", "Non-ferrous metals", 
-                               "E_CSeInNFM", "Mt/yr", "Coal - Non-ferrous metals", "IEA2016 - WEB", countries))
-v_data <- rbind(v_data,
-                get_IEAWEBdata(u_fpath$IEAWEB, "Coal and coal products", "Non-metallic minerals", 
-                               "E_CSeInNMM", "Mt/yr", "Coal - Non-metallic minerals", "IEA2016 - WEB", countries))
-v_data <- rbind(v_data,
-                get_IEAWEBdata(u_fpath$IEAWEB, "Coal and coal products", "Food and tobacco", 
-                               "E_CSeInFT", "Mt/yr", "Coal - Food and tobacco", "IEA2016 - WEB", countries))
-v_data <- rbind(v_data,
-                get_IEAWEBdata(u_fpath$IEAWEB, "Coal and coal products", "Wood and wood products", 
-                               "E_CSeInWWP", "Mt/yr", "Coal - Wood and wood products", "IEA2016 - WEB", countries))
-v_data <- rbind(v_data,
-                get_IEAWEBdata(u_fpath$IEAWEB, "Coal and coal products", "Construction", 
-                               "E_CSeInCo", "Mt/yr", "Coal - Construction", "IEA2016 - WEB", countries))
-v_data <- rbind(v_data,
-                get_IEAWEBdata(u_fpath$IEAWEB, "Coal and coal products", "Non-specified (industry)", 
-                               "E_CSeInNA", "Mt/yr", "Coal - Non-specified (industry)", "IEA2016 - WEB", countries))
-v_data <- rbind(v_data,
-                get_IEAWEBdata(u_fpath$IEAWEB, "Coal and coal products", "Machinery", 
-                               "E_CSeInMa", "Mt/yr", "Coal - Machinery", "IEA2016 - WEB", countries))
+# v_data <- rbind(v_data,
+#                 get_IEAWEBdata(u_fpath$IEAWEB, "Coal and coal products", "Paper, pulp and printing ", 
+#                                "E_CSeInPPP", "Mt/yr", "Coal - Paper, pulp and printing", "IEA2016 - WEB", countries))
+# v_data <- rbind(v_data,
+#                 get_IEAWEBdata(u_fpath$IEAWEB, "Coal and coal products", "Mining and quarrying", 
+#                                "E_CSeInMQ", "Mt/yr", "Coal - Mining and quarrying", "IEA2016 - WEB", countries))
+# v_data <- rbind(v_data,
+#                 get_IEAWEBdata(u_fpath$IEAWEB, "Coal and coal products", "Non-ferrous metals", 
+#                                "E_CSeInNFM", "Mt/yr", "Coal - Non-ferrous metals", "IEA2016 - WEB", countries))
+# v_data <- rbind(v_data,
+#                 get_IEAWEBdata(u_fpath$IEAWEB, "Coal and coal products", "Non-metallic minerals", 
+#                                "E_CSeInNMM", "Mt/yr", "Coal - Non-metallic minerals", "IEA2016 - WEB", countries))
+# v_data <- rbind(v_data,
+#                 get_IEAWEBdata(u_fpath$IEAWEB, "Coal and coal products", "Food and tobacco", 
+#                                "E_CSeInFT", "Mt/yr", "Coal - Food and tobacco", "IEA2016 - WEB", countries))
+# v_data <- rbind(v_data,
+#                 get_IEAWEBdata(u_fpath$IEAWEB, "Coal and coal products", "Wood and wood products", 
+#                                "E_CSeInWWP", "Mt/yr", "Coal - Wood and wood products", "IEA2016 - WEB", countries))
+# v_data <- rbind(v_data,
+#                 get_IEAWEBdata(u_fpath$IEAWEB, "Coal and coal products", "Construction", 
+#                                "E_CSeInCo", "Mt/yr", "Coal - Construction", "IEA2016 - WEB", countries))
+# v_data <- rbind(v_data,
+#                 get_IEAWEBdata(u_fpath$IEAWEB, "Coal and coal products", "Non-specified (industry)", 
+#                                "E_CSeInNA", "Mt/yr", "Coal - Non-specified (industry)", "IEA2016 - WEB", countries))
+# v_data <- rbind(v_data,
+#                 get_IEAWEBdata(u_fpath$IEAWEB, "Coal and coal products", "Machinery", 
+#                                "E_CSeInMa", "Mt/yr", "Coal - Machinery", "IEA2016 - WEB", countries))
 v_data <- rbind(v_data,
                 get_IEAWEBdata(u_fpath$IEAWEB, "Coal and coal products", "Commercial and public services", 
                                "E_CSeCoPuS", "Mt/yr", "Coal - Commercial and public services", "IEA2016 - WEB", countries))
@@ -651,18 +744,18 @@ v_data <- rbind(v_data,
 v_data <- rbind(v_data,
                 get_IEAWEBdata(u_fpath$IEAWEB, "Coal and coal products", "Transport", 
                                "E_CSeTr", "Mt/yr", "Coal - Transport (Road, Rail, Dom. Navigation...)", "IEA2016 - WEB", countries))
-v_data <- rbind(v_data,
-                get_IEAWEBdata(u_fpath$IEAWEB, "Coal and coal products", "Road", 
-                               "E_CSeRo", "Mt/yr", "Coal - Road", "IEA2016 - WEB", countries))
-v_data <- rbind(v_data,
-                get_IEAWEBdata(u_fpath$IEAWEB, "Coal and coal products", "Rail", 
-                               "E_CSeRa", "Mt/yr", "Coal - Rail", "IEA2016 - WEB", countries))
-v_data <- rbind(v_data,
-                get_IEAWEBdata(u_fpath$IEAWEB, "Coal and coal products", "Domestic navigation", 
-                               "E_CSeNav", "Mt/yr", "Coal - Domestic navigation", "IEA2016 - WEB", countries))
-v_data <- rbind(v_data,
-                get_IEAWEBdata(u_fpath$IEAWEB, "Coal and coal products", "Energy industry own use", 
-                               "E_CSeEx", "Mt/yr", "Coal - Energy industry own use", "IEA2016 - WEB", countries))
+# v_data <- rbind(v_data,
+#                 get_IEAWEBdata(u_fpath$IEAWEB, "Coal and coal products", "Road", 
+#                                "E_CSeRo", "Mt/yr", "Coal - Road", "IEA2016 - WEB", countries))
+# v_data <- rbind(v_data,
+#                 get_IEAWEBdata(u_fpath$IEAWEB, "Coal and coal products", "Rail", 
+#                                "E_CSeRa", "Mt/yr", "Coal - Rail", "IEA2016 - WEB", countries))
+# v_data <- rbind(v_data,
+#                 get_IEAWEBdata(u_fpath$IEAWEB, "Coal and coal products", "Domestic navigation", 
+#                                "E_CSeNav", "Mt/yr", "Coal - Domestic navigation", "IEA2016 - WEB", countries))
+# v_data <- rbind(v_data,
+#                 get_IEAWEBdata(u_fpath$IEAWEB, "Coal and coal products", "Energy industry own use", 
+#                                "E_CSeEx", "Mt/yr", "Coal - Energy industry own use", "IEA2016 - WEB", countries))
 
 
 #-- Coal, oil, gas endowments ----------------
@@ -679,31 +772,31 @@ v_data <- rbind(v_data,
 # TODO:
 #  - Process Kosovo
 v_data <- rbind(v_data,
-                get_BGRdata(u_fpath$BGR, "s. 27, √úbersicht Hartkohle,...", 1,
+                get_BGRdata(u_fpath$BGR, "s. 27, ‹bersicht Hartkohle,...", 1,
                             "E_CE", "Mt(coal)", "Coal endowment - Hard coal Resources (proved at the end of 2015)", "BGR 2016", 
                             countries))
 v_data <- rbind(v_data,
-                get_BGRdata(u_fpath$BGR, "s. 27, √úbersicht Hartkohle,...", 1,
+                get_BGRdata(u_fpath$BGR, "s. 27, ‹bersicht Hartkohle,...", 1,
                             "E_CE", "Mt(coal)", "Coal endowment - Hard coal Reserves (proved at the end of 2015)", "BGR 2016", 
                             countries))
 
 v_data <- rbind(v_data,
-                get_BGRdata(u_fpath$BGR, "s. 34, √úbersicht Weichbraun...", 1,
+                get_BGRdata(u_fpath$BGR, "s. 34, ‹bersicht Weichbraun...", 1,
                             "E_CE", "Mt(coal)", "Coal endowment - Lignite Resources (proved at the end of 2015)", "BGR 2016", 
                             countries))
 v_data <- rbind(v_data,
-                get_BGRdata(u_fpath$BGR, "s. 34, √úbersicht Weichbraun...", 1,
+                get_BGRdata(u_fpath$BGR, "s. 34, ‹bersicht Weichbraun...", 1,
                             "E_CE", "Mt(coal)", "Coal endowment - Lignite Reserves (proved at the end of 2015)", "BGR 2016", 
                             countries))
 
 v_data <- rbind(v_data,
   right_join(countries,
     rbind(
-    get_BGRdata(u_fpath$BGR, "s. 27, √úbersicht Hartkohle,...", 1,
+    get_BGRdata(u_fpath$BGR, "s. 27, ‹bersicht Hartkohle,...", 1,
               "E_CE", "Mt(coal)", "Coal endowment - Hard coal Resources (estimated at the end of 2015)", "BGR 2016", 
               countries) %>% 
       select(iso, value),
-    get_BGRdata(u_fpath$BGR, "s. 34, √úbersicht Weichbraun...", 1,
+    get_BGRdata(u_fpath$BGR, "s. 34, ‹bersicht Weichbraun...", 1,
               "E_CE", "Mt(coal)", "Coal endowment - Lignite Resources (estimated at the end of 2015)", "BGR 2016", 
               countries) %>% 
       select(iso, value)) %>% 
@@ -720,11 +813,11 @@ v_data <- rbind(v_data,
 v_data <- rbind(v_data,
               right_join(countries,
                           rbind(
-                            get_BGRdata(u_fpath$BGR, "s. 27, √úbersicht Hartkohle,...", 1,
+                            get_BGRdata(u_fpath$BGR, "s. 27, ‹bersicht Hartkohle,...", 1,
                                         "E_CE", "Mt(coal)", "Coal endowment - Hard coal Reserves (proved at the end of 2015)", "BGR 2016", 
                                         countries) %>% 
                               select(iso, value),
-                            get_BGRdata(u_fpath$BGR, "s. 34, √úbersicht Weichbraun...", 1,
+                            get_BGRdata(u_fpath$BGR, "s. 34, ‹bersicht Weichbraun...", 1,
                                         "E_CE", "Mt(coal)", "Coal endowment - Lignite Reserves (proved at the end of 2015)", "BGR 2016", 
                                         countries) %>% 
                               select(iso, value)) %>% 
@@ -771,16 +864,22 @@ v_data <- rbind(v_data,
 #-- Nuclear consumption -----------------------
 # Source: IEA WEB 2016
 # TODO:
+# v_data <- rbind(v_data,
+#                 get_IEAWEBdata(u_fpath$IEAWEB, "Nuclear", "Total final consumption", 
+#                                "E_NC", "Mt/yr", "Nuclear consumption", "IEA2016 - WEB", countries))
 v_data <- rbind(v_data,
-                get_IEAWEBdata(u_fpath$IEAWEB, "Nuclear", "Total final consumption", 
-                               "E_NC", "Mt/yr", "Nuclear consumption", "IEA2016 - WEB", countries))
+                get_IEAWEBdata2(u_fpath$IEAWEB2, "Nuclear",  
+                                "E_NC", "Mt/yr", "Nuclear consumption", "IEA2016 - WEB", countries))
 
 #-- Hydro consumption -------------------------
 # Source: IEA WEB 2016
 # TODO:
+# v_data <- rbind(v_data,
+#                 get_IEAWEBdata(u_fpath$IEAWEB, "Hydro", "Total final consumption", 
+#                                "E_HC", "Mt/yr", "Hydro consumption", "IEA2016 - WEB", countries))
 v_data <- rbind(v_data,
-                get_IEAWEBdata(u_fpath$IEAWEB, "Hydro", "Total final consumption", 
-                               "E_HC", "Mt/yr", "Hydro consumption", "IEA2016 - WEB", countries))
+                get_IEAWEBdata2(u_fpath$IEAWEB2, "Hydro",  
+                                "E_HC", "Mt/yr", "Hydro consumption", "IEA2016 - WEB", countries))
 
 #-- Geothermal consumption -------------------------
 # Source: IEA WEB 2016
@@ -838,6 +937,27 @@ v_data <- rbind(v_data,
                             "GDPpc", "PPP (constant 2011 international $)", "GDP per capita", "WDI 2016", 
                             countries))
 
+#-- Gross fixed capital formation ------------
+# Source: WB 2016
+v_data <- rbind(v_data,
+                get_WDIdata(u_fpath$WDI, "Gross fixed capital formation (constant 2010 US$)", 
+                            "K", "constant 2010 US$", "K", "WDI 2016", 
+                            countries))
+
+#-- Labour ----------------------------------
+# Source: WB 2016
+v_data <- rbind(v_data,
+                get_WDIdata(u_fpath$WDI, "Labor force, total",
+                            "Lab", "total", "Lab", "WDI 2016", 
+                            countries))
+
+#-- Total External debt stocks ---------------
+# Source: WB 2016
+v_data <- rbind(v_data,
+                get_WDIdata(u_fpath$WDI, "External debt stocks, total (DOD, current US$)",
+                            "Debt_Ext", "DOD, current US$", "Debt_Ext", "WDI 2016", 
+                            countries))
+
 #-- Air pollution ---------------------------
 # Source: WB 2016
 v_data <- rbind(v_data,
@@ -849,9 +969,9 @@ v_data <- rbind(v_data,
                             "AP_pm25pe", "% of total population", "PM2.5 air pollution (population exposed to levels exceeding WHO guideline value)", "WDI 2016", 
                             countries))
 
-#-- Non-dependent population -----------------
+#-- Total population -----------------
 v_data <- rbind(v_data,
-                get_WDIdata(u_fpath$WDI, "Population", 
+                get_WDIdata(u_fpath$WDI, "Population, total", 
                             "P", "Total population", "Population", "WDI 2016", 
                             countries))
 #-- Non-dependent population -----------------
@@ -873,13 +993,22 @@ v_data <- rbind(v_data,
                             countries))
 
 
+#-- Energy for Iron and Steel ----------------------
+v_data <- rbind(v_data,
+                get_IEAWEBdata(u_fpath$IEAWEB, "Total", "Iron and steel", 
+                               "Steel", "GJ/yr", "Total energy input for Iron and Steel production", "IEA2016 - WEB", countries))
+
+#-- Energy for construction (proxy for cement) ----------------------
+v_data <- rbind(v_data,
+                get_IEAWEBdata(u_fpath$IEAWEB, "Total", "Construction", 
+                               "Constr", "GJ/yr", "Total energy input for construction", "IEA2016 - WEB", countries))
+
 # Subsidies
 
 # Other interesting WDI variables
 # Access to electricity (% of population)
 # Children in employment, total (% of children ages 7-14)
 # Children out of school (% of primary school age)
-# Gross capital formation (% of GDP)
 # Health expenditure per capita (current US$)
 # Lending interest rate (%)
 # Military expenditure (% of GDP)
@@ -906,6 +1035,7 @@ if (!file.exists(v_CO2TypRDataPath)) {
 
 p_data <- p_data %>% 
   gather(variable, value, -country, -year) %>% 
+  filter(!variable %in% c("energy_tpes_IEA_pc", "energy_tfec_IEA_pc")) %>% 
   mutate(longname = "") %>% 
   mutate(source   = "") %>% 
   mutate(unit     = "") %>% 
@@ -1062,7 +1192,7 @@ p_data <- p_data %>%
 
 country_nameMapping <- c(
   "British Virgin Islands"                     = "Virgin Islands (British)",
-  "C√¥te d'Ivoire"                              = "Cote d'Ivoire",
+  "CÙte d'Ivoire"                              = "Cote d'Ivoire",
   "Democratic Republic of the Congo"           = "Congo (Democratic Republic of the)",
   "China (Hong Kong SAR)"                      = "Hong Kong",
   "China (Macau SAR)"                          = "Macao",
@@ -1072,7 +1202,7 @@ country_nameMapping <- c(
   "Micronesia (Fed. States of)"                = "Micronesia (Federated States of)",
   "Republic of Korea"                          = "Korea (Republic of)",
   "Republic of Moldova"                        = "Moldova (Republic of)",
-  "R√©union"                                    = "Reunion",
+  "RÈunion"                                    = "Reunion",
   "Saint Helena"                               = "Saint Helena, Ascension and Tristan da Cunha",
   "TFYR Macedonia"                             = "Macedonia (the former Yugoslav Republic of)",
   "United Kingdom"                             = "United Kingdom of Great Britain and Northern Ireland",

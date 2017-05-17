@@ -1,11 +1,14 @@
 if (u_mode == "knitr") u_path <- lapply(u_path, function(x) file.path("..", x))
 
 #---- Load libraries ------
+library(RColorBrewer)
 library(guidr)
+library(igraph)
 library(dplyr)
 library(tidyr)
 library(magrittr)
 library(ggplot2)
+library(scatterpie)
 if (u_mode == "knitr") {
   library(corrplot)
   library(GGally)
