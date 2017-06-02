@@ -416,9 +416,9 @@ ggplot(data=dataSum %>%
 u_selectedVars      <- c("E_CC", "GDPpc", "P", "E_CCGDP")
 u_selectedStartYear <- 1971
 
-selectedCountries <- function(startYear){
+selectedCountries <- function(startYear, selectedVars){
   tmp <- v_dataShort %>% 
-    filter(iso %in% iso_lvls, variable %in% u_selectedVars) %>% 
+    filter(iso %in% iso_lvls, variable %in% selectedVars) %>% 
     group_by(variable, iso) %>% 
     filter(!is.na(value) & value != 0) %>% 
     summarise(min_year=min(year), max_year=max(year)) %>% 
@@ -446,7 +446,7 @@ selectedCountries <- function(startYear){
   
 } 
 
-tmplist <- lapply(1960:2000, selectedCountries)
+tmplist <- lapply(1960:2000, selectedCountries, u_selectedVars)
 balancedPanel <- do.call("rbind", tmplist)
 
 ggplot(balancedPanel) + geom_path(aes(x=startyear, y=share))
