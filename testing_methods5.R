@@ -4,15 +4,26 @@ source("scripts/user_settings.R")
 source("scripts/init.R")
 source("scripts/process_data.R")
 
-testingMethodName = "testingMethod5"
+testingMethodName = "testingMethods5"
 Ncases   = 500
 u_period = list(
+  "LongTerm40y" = c(1971, 2012),
+  "LongTerm20y" = c(1991, 2012))
 u_selectedDepVars = c("E_CC")
 u_selectedIndepVars = list(
+  "Clark2012"   = c("GDPpc", "P", "P_Ndep", "URB", "Manu", "Manu_Ex"),
   "EnhancedSet" = c("E_CIm", "E_CEx", "E_CP", 
                     "GDPpc", "P", "P_Ndep", 
                     "URB", "LEx", "EE", 
-                    "GDP_Ag", "GDP_Ind", "GDP_Ser", "GDP_Tra"))
+                    "GDP_Ag", "GDP_Ind", "GDP_Ser", "GDP_Tra"),
+  "EnhancedSetNoSer" = c("E_CIm", "E_CEx", "E_CP", 
+                    "GDPpc", "P", "P_Ndep", 
+                    "URB", "LEx", "EE", 
+                    "GDP_Ag", "GDP_Ind", "GDP_Tra"),
+  "EnhancedSetNoAgr" = c("E_CIm", "E_CEx", "E_CP", 
+                         "GDPpc", "P", "P_Ndep", 
+                         "URB", "LEx", "EE", 
+                         "GDP_Ser", "GDP_Ind", "GDP_Tra"))
 u_treeModels = c("FE-MLinROLS")
 # 80 countries
 u_iso = c("CHN","USA", "DEU", "IND", "JPN", "POL", "GBR", "ZAF", "FRA", "KOR", "TUR", "CAN", "AUS", "BEL", "ITA", "BRA", "ESP", "IDN",
@@ -28,42 +39,42 @@ defineCases  <- function(projName, selectedDepVars, selectedIndepVars, period, t
   
   #===== Rank coal consuming countries by decreasing order ===================
   tmp <- v_dataShort %>% 
-    filter(variable == "E_CC") %>% 
-    select(-variable) %>% 
-    group_by(iso) %>% 
-    arrange(year) %>% 
-    summarize(value=sum(value, na.rm=TRUE)) %>% 
-    ungroup() %>% 
-    filter(value != 0) %>% 
-    arrange(desc(value))
+    dplyr::filter(variable == "E_CC") %>% 
+    dplyr::select(-variable) %>% 
+    dplyr::group_by(iso) %>% 
+    dplyr::arrange(year) %>% 
+    dplyr::summarize(value=sum(value, na.rm=TRUE)) %>% 
+    dplyr::ungroup() %>% 
+    dplyr::filter(value != 0) %>% 
+    dplyr::arrange(desc(value))
   
   iso_lvls = tmp$iso
   
   getCountries <- function(startYear, selectedVars, yearcumsum=2010){
     tmp <- v_dataShort %>% 
-      filter(iso %in% iso_lvls, variable %in% selectedVars) %>% 
-      group_by(variable, iso) %>% 
-      filter(!is.na(value) & value != 0) %>% 
-      summarise(min_year=min(year), max_year=max(year)) %>% 
-      ungroup() %>% 
-      left_join(
+      dplyr::filter(iso %in% iso_lvls, variable %in% selectedVars) %>% 
+      dplyr::group_by(variable, iso) %>% 
+      dplyr::filter(!is.na(value) & value != 0) %>% 
+      dplyr::summarise(min_year=min(year), max_year=max(year)) %>% 
+      dplyr::ungroup() %>% 
+      dplyr::left_join(
         v_dataShort %>% 
-          filter(variable == "E_CC", year == yearcumsum) %>% 
-          select(iso, value)) %>% 
-      mutate(iso = factor(iso, levels=iso_lvls, ordered=TRUE)) %>% 
-      filter(min_year <= startYear) %>% 
-      select(-min_year, -max_year) %>% 
-      spread(variable, value) %>% 
-      gather(variable, value, -iso) %>%     
-      group_by(iso) %>% 
-      summarise(keep=ifelse(!is.na(sum(value)), 1, 0)) %>% 
-      ungroup() %>% 
-      filter(keep == 1) %>% 
-      select(iso) %>% 
-      left_join(
+          dplyr::filter(variable == "E_CC", year == yearcumsum) %>% 
+          dplyr::select(iso, value)) %>% 
+      dplyr::mutate(iso = factor(iso, levels=iso_lvls, ordered=TRUE)) %>% 
+      dplyr::filter(min_year <= startYear) %>% 
+      dplyr::select(-min_year, -max_year) %>% 
+      dplyr::spread(variable, value) %>% 
+      dplyr::gather(variable, value, -iso) %>%     
+      dplyr::group_by(iso) %>% 
+      dplyr::summarise(keep=ifelse(!is.na(sum(value)), 1, 0)) %>% 
+      dplyr::ungroup() %>% 
+      dplyr::filter(keep == 1) %>% 
+      dplyr::select(iso) %>% 
+      dplyr::left_join(
         v_dataShort %>% 
-          filter(variable == "E_CC", year == yearcumsum) %>% 
-          select(iso, value))
+          dplyr::filter(variable == "E_CC", year == yearcumsum) %>% 
+          dplyr::select(iso, value))
     
     return(tmp$iso)
     
@@ -152,11 +163,17 @@ v_regdata <- list()
 
 v_runtime <- c()
 
+dir.create(file.path("output", testingMethodName, "Plots data"))
+dir.create(file.path("output", testingMethodName, "Plots Trees"))
+dir.create(file.path("output", testingMethodName, "Plots country pathways"))
+dir.create(file.path("output", testingMethodName, "Pred Plots"))
+dir.create(file.path("output", testingMethodName, "check_data"), recursive = TRUE)
+
 #==== Run experiments ===================
 t1 <- Sys.time()
 if (!file.exists(file.path("output", testingMethodName, "data", paste0(testingMethodName, "_GUIDEresults_", format(Sys.time(), "%Y-%m-%d"),".RData")))) {
   t1 <- Sys.time()
-  for (k_tm in names(u_cases)) {
+  for (k_tm in names(u_cases)[2]) {
     #TODO: make this one interactive on demand
     treeOpts <- initTreeOptions(prune      = "1",  # 1=prune by CV, 2=no pruning
                                 nbcv       = 10,   # Number of cross-validation steps (i.e. number of sub data spaces)
@@ -184,7 +201,7 @@ if (!file.exists(file.path("output", testingMethodName, "data", paste0(testingMe
     v_dataShortProc <- data_prepare(v_dataShort %>% filter(iso %in% tmp_iso) %>% spread(variable, value) , 
                                     tmp_vardef, 
                                     u_cases[[k_tm]]$period[1], u_cases[[k_tm]]$period[2], 
-                                    MISSINGRATIO = 0.90, REMOVE_ZEROS = TRUE, 
+                                    MISSINGRATIO = 0.90, REMOVE_ZEROS = FALSE, 
                                     FIRSTDIFF = u_cases[[k_tm]]$firstdiff, 
                                     DEMEAN    = u_cases[[k_tm]]$demean, 
                                     VERBOSE   = FALSE)
@@ -208,6 +225,12 @@ if (!file.exists(file.path("output", testingMethodName, "data", paste0(testingMe
     v_allocOriginal[[k_tm]] <- list()
     v_regdata[[k_tm]]       <- list()
     
+    rmarkdown::render(input  = "regression_diagnostics.Rmd", 
+           params = list(data=v_dataShortProc$data),
+           output_dir  = file.path("output", testingMethodName, "check_data"),
+           output_file = paste0("RD_", k_tm, ".html"))
+    detach("package:MASS", unload=TRUE)
+    
     # Randomise data
     for (k_case in 0:Ncases) {
       
@@ -225,56 +248,61 @@ if (!file.exists(file.path("output", testingMethodName, "data", paste0(testingMe
       # Sample data (remove observations)
       if (k_case != 0) {
         # Get number of observations in default tree
-        Nobs <- dim(v_data[[k_tm]][[0]]$data)[1]
+        Nobs <- dim(v_data[[k_tm]][["0"]]$data)[1]
         
         # Remove 1 observation
-        tmp_data_sample <- v_data[[k_tm]][[0]]
+        tmp_data_sample <- v_data[[k_tm]][["0"]]
         tmp_data_sample$data <- tmp_data_sample$data %>% sample_n(Nobs-1)
-        v_data[[k_tm]][[k_case]] <- tmp_data_sample
+        v_data[[k_tm]][[paste(k_case)]] <- tmp_data_sample
         
         # Remove 1% of observations
         if (k_case > 100) {
-          tmp_data_sample <- v_data[[k_tm]][[0]]
+          tmp_data_sample <- v_data[[k_tm]][["0"]]
           tmp_data_sample$data <- tmp_data_sample$data %>% sample_frac(0.99)
-          v_data[[k_tm]][[k_case]] <- tmp_data_sample
+          v_data[[k_tm]][[paste(k_case)]] <- tmp_data_sample
         }
         
         # Remove 5% of observations
         if (k_case > 200) {
-          tmp_data_sample <- v_data[[k_tm]][[0]]
+          tmp_data_sample <- v_data[[k_tm]][["0"]]
           tmp_data_sample$data <- tmp_data_sample$data %>% sample_frac(0.95)
-          v_data[[k_tm]][[k_case]] <- tmp_data_sample
+          v_data[[k_tm]][[paste(k_case)]] <- tmp_data_sample
         }
         
         # Remove 10% of observations
         if (k_case > 300) {
-          tmp_data_sample <- v_data[[k_tm]][[0]]
+          tmp_data_sample <- v_data[[k_tm]][["0"]]
           tmp_data_sample$data <- tmp_data_sample$data %>% sample_frac(0.90)
-          v_data[[k_tm]][[k_case]] <- tmp_data_sample
+          v_data[[k_tm]][[paste(k_case)]] <- tmp_data_sample
         }
       } else {
-        v_data[[k_tm]][[k_case]] <- v_dataShortProc
+        v_data[[k_tm]][[paste(k_case)]] <- v_dataShortProc
       }
       
+      
+      # render(input  = "regression_diagnostics.Rmd", 
+      #        params = list(data=v_data[[k_tm]][[paste(k_case)]]$data),
+      #        output_dir = outPath)
+      
       # Generate GUIDE input data
-      v_dataShortProcGUIDE <- generate_input(v_data[[k_tm]][[k_case]]$data, v_variableDefinition, 
+      v_dataShortProcGUIDE <- generate_input(v_data[[k_tm]][[paste(k_case)]]$data, v_variableDefinition, 
                                              i_treeType    = u_cases[[k_tm]]$treetype,  # "Single tree > LMS - Multilinear"
                                              i_treeOptions = treeOpts, 
                                              i_fpath       = treePath)
       
       # Run GUIDE
-      run(treePath)
+      run_guide(treePath)
       
-      v_tree[[k_tm]][[k_case]]          <- NA
-      v_alloc[[k_tm]][[k_case]]         <- NA
-      v_allocOriginal[[k_tm]][[k_case]] <- NA
-      v_regdata[[k_tm]][[k_case]]       <- NA
+      v_tree[[k_tm]][[paste(k_case)]]          <- NA
+      v_alloc[[k_tm]][[paste(k_case)]]         <- NA
+      v_allocOriginal[[k_tm]][[paste(k_case)]] <- NA
+      v_regdata[[k_tm]][[paste(k_case)]]       <- NA
       
       
       # Collect and process results
       parseFile <- TRUE
       tryCatch(
-        v_tree[[k_tm]][[k_case]]  <- parse_output(file.path(outPath, "GUIDEfile_out.txt"), v_variableDefinition),
+        v_tree[[k_tm]][[paste(k_case)]]  <- parse_output(file.path(outPath, "GUIDEfile_out.txt"), v_variableDefinition),
         error = function(e) {
           print("Could not parse output file. Skipping...")
           parseFile <<- FALSE
@@ -282,15 +310,15 @@ if (!file.exists(file.path("output", testingMethodName, "data", paste0(testingMe
       )
       
       if (parseFile) {
-        v_alloc[[k_tm]][[k_case]] <- allocateDataToNodes(v_data[[k_tm]][[k_case]]$data, v_tree[[k_tm]][[k_case]]) 
+        v_alloc[[k_tm]][[paste(k_case)]] <- allocateDataToNodes(v_data[[k_tm]][[paste(k_case)]]$data, v_tree[[k_tm]][[paste(k_case)]]) 
         if (!is.null(v_dataShortProc$datamean)) {
-          v_allocOriginal[[k_tm]][[k_case]] <- v_alloc[[k_tm]][[k_case]] %>% 
+          v_allocOriginal[[k_tm]][[paste(k_case)]] <- v_alloc[[k_tm]][[paste(k_case)]] %>% 
             gather(variable, value, -iso,-year,-tnode) %>% 
             mutate(original_variable=gsub("log_","",variable)) %>% 
             left_join( v_dataShortProc$datamean, by=c("iso","original_variable"="variable")) %>% 
             mutate(original_value=exp(value+mean))
         } else {
-          v_allocOriginal[[k_tm]][[k_case]] <- v_alloc[[k_tm]][[k_case]] %>% 
+          v_allocOriginal[[k_tm]][[paste(k_case)]] <- v_alloc[[k_tm]][[paste(k_case)]] %>% 
             gather(variable, value, -iso,-year,-tnode) %>% 
             mutate(original_variable=gsub("log_","",variable)) %>% 
             mutate(original_value=exp(value))
@@ -298,7 +326,7 @@ if (!file.exists(file.path("output", testingMethodName, "data", paste0(testingMe
         regfile <- file.path(outPath, "GUIDEfile_regnames.txt")
         
         if (file.exists(regfile)) {
-          v_regdata[[k_tm]][[k_case]] <- parse_regcoef(regfile)
+          v_regdata[[k_tm]][[paste(k_case)]] <- parse_regcoef(regfile)
         } 
       }
       
@@ -309,16 +337,105 @@ if (!file.exists(file.path("output", testingMethodName, "data", paste0(testingMe
       # Save data in folder
       guide_data <- list(
         case  = u_cases[[k_tm]],
-        data  = v_data[[k_tm]][[k_case]], 
-        tree  = v_tree[[k_tm]][[k_case]], 
-        alloc = v_alloc[[k_tm]][[k_case]], 
-        alloc_original = v_allocOriginal[[k_tm]][[k_case]] , 
-        regdata = v_regdata[[k_tm]][[k_case]],
+        data  = v_data[[k_tm]][[paste(k_case)]], 
+        tree  = v_tree[[k_tm]][[paste(k_case)]], 
+        alloc = v_alloc[[k_tm]][[paste(k_case)]], 
+        alloc_original = v_allocOriginal[[k_tm]][[paste(k_case)]] , 
+        regdata = v_regdata[[k_tm]][[paste(k_case)]],
         runtime = runtime
       )
       save(guide_data, file = file.path(outPath, paste0(testingMethodName, "_GUIDEdata_", format(Sys.time(), "%Y-%m-%d"),".RData")))
       
       cat(paste0(" Run time ",  runtime, "(s)\n"))
+      
+      
+      #==== Plot results ==============
+      t2 <- Sys.time()
+      
+      cat(paste0("Plotting Experiment ", k_caseName , "\n"))
+      
+      if (!is.null(v_tree[[k_tm]][[paste(k_case)]])) {
+        # Data
+        p = ggplot(data = v_data[[k_tm]][[paste(k_case)]]$data %>% 
+                     gather(variable, value, -iso, -year) %>% 
+                     filter(
+                       iso %in% c("USA", "DEU", "AUS", "IND", "IDN", "ZAF"),
+                       variable %in% c("log_E_CC", "log_GDPpc", "log_pop", "log_GDPpc", "log_E_CIm", "log_GDP_Ag", "log_GDP_Ind", "log_GDP_Tra", "log_URB"))) +
+          geom_line(aes(x=year, y=value)) +
+          facet_grid(variable~iso, scales="free_y") +
+          theme_bw()
+        #print(p)
+        ggsave(p, filename = file.path("output", testingMethodName, "Plots data/", paste0(k_tm ,"_", k_caseName, ".png")), width = 297, height = 210, units = c("mm"), dpi = 300)
+        
+        # Tree
+        tree <- as.fake.rpart.tree(v_tree[[k_tm]][[paste(k_case)]])
+        if (dim(tree$frame)[1] != 0) {
+          plot_tree(tree, 
+                    TITLE=paste0("RT - ", k_case, "\nLMS-Multilinear - Tn:", length(which(v_tree[[k_tm]][[paste(k_case)]]$nodeType == "Terminal node")), "\n#Countries: ",length(unique(v_data[[k_tm]][[paste(k_case)]]$data$iso)), " - period: ",min(v_data[[k_tm]][[paste(k_case)]]$data$year),"-",max(v_data[[k_tm]][[paste(k_case)]]$data$year)), 
+                    CEX=NULL, LEGEND.X = 0, LEGEND.Y = 1.1, LEGEND.CEX=0.5, LEGEND.NCOL=2,
+                    FILENAME = file.path("output", testingMethodName, "Plots Trees/", paste0(k_tm, "_", k_caseName, ".pdf")))
+          plot_tree(tree, 
+                    TITLE=paste0("RT - ", k_case, "\nLMS-Multilinear - Tn:", length(which(v_tree[[k_tm]][[paste(k_case)]]$nodeType == "Terminal node")), "\n#Countries: ",length(unique(v_data[[k_tm]][[paste(k_case)]]$data$iso)), " - period: ",min(v_data[[k_tm]][[paste(k_case)]]$data$year),"-",max(v_data[[k_tm]][[paste(k_case)]]$data$year)), 
+                    CEX=NULL, LEGEND.X = 0, LEGEND.Y = 1.1, LEGEND.CEX=0.5, LEGEND.NCOL=2,
+                    FILENAME = file.path("output", testingMethodName, "Plots Trees/", paste0(k_tm, "_", k_caseName, ".png")))
+        }
+        
+        if (dim(v_alloc[[k_tm]][[paste(k_case)]])[1] != 0) {
+          # Country pathways
+          png(filename=file.path("output", testingMethodName, "Plots country pathways/", paste0(k_tm, "_", k_caseName, ".png")), width=1500, height=1500, res = 125)
+          plot_ISOPathways(c("CHN", "USA"),v_alloc[[k_tm]][[paste(k_case)]], v_tree[[k_tm]][[paste(k_case)]])
+          dev.off()
+          
+          # Prediction plots
+          dvar = paste0("log_", u_cases[[k_tm]]$dvar)
+          
+          pred_data <- list()
+          for (kn in v_regdata[[k_tm]][[paste(k_case)]]$Node) {
+            tmp_data = v_regdata[[k_tm]][[paste(k_case)]] %>% 
+              filter(Node == kn)
+            tmp_cst = tmp_data$Constant
+            tmp_reg = tmp_data %>% 
+              select(-Node, -Constant) %>% 
+              gather(variable, regcoeff)
+            
+            tmp_data <- v_alloc[[k_tm]][[paste(k_case)]] %>% 
+              filter(tnode == kn) %>% 
+              select(-tnode) %>% 
+              gather(variable, value, -iso, -year)
+            original <- tmp_data %>% 
+              filter(variable == dvar)
+            predict <- tmp_data %>% 
+              filter(variable != dvar) %>% 
+              left_join(tmp_reg, by=c("variable")) %>% 
+              #=== reproducing GUIDE approach to fill NAs (i.e. global average)
+              group_by(variable) %>% 
+              mutate(value = ifelse(is.na(value), mean(value, na.rm=TRUE), value)) %>% 
+              ungroup() %>% 
+              #=========
+            mutate(tmp = value*regcoeff) %>%
+              group_by(iso,year) %>% 
+              summarize(estimate=sum(tmp, na.rm=TRUE)+tmp_cst) %>% 
+              ungroup()
+            
+            pred_data[[paste(kn)]] <- left_join(original, predict, by=c("iso","year")) %>% 
+              mutate(node = kn)
+            
+          }
+          pred_data <- do.call("rbind", pred_data)
+          
+          p = ggplot(pred_data) +
+            geom_segment(aes(x=-1.5, xend=1.5, y=-1.5, yend=1.5), color="red") +
+            geom_point(aes(x=value, y=estimate, label=paste0(iso,"-",year))) +
+            facet_wrap(~node, ncol=6) +
+            xlab("original") + ylab("estimate")
+          #print(p)
+          ggsave(filename = file.path(paste0("output/", testingMethodName, "/Pred Plots/"), paste0(k_tm, "_", k_caseName, ".png")), width = 297, height = 210, units = c("mm"), dpi = 300)
+        }
+      }
+
+      plot_exp <- Sys.time() - t2
+      cat(paste0("It took ",  plot_exp, "(s) to plot this experiment.\n"))
+    
     }
   }
   
@@ -338,9 +455,6 @@ if (!file.exists(file.path("output", testingMethodName, "data", paste0(testingMe
 
 #==== Plot results ==============
 t2 <- Sys.time()
-dir.create(file.path("output", testingMethodName, "Plots Trees"))
-dir.create(file.path("output", testingMethodName, "Plots country pathways"))
-dir.create(file.path("output", testingMethodName, "Pred Plots"))
 
 for (k_case in 1:Ncases) {
   

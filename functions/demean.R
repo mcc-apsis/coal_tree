@@ -7,7 +7,7 @@ demean <- function(i_data, i_var) {
     mutate_(.dots = setNames(list(mutate_call), "varmean"))
   
   # Demean
-  mutate_call <- lazyeval::interp(~ i_var - varmean, i_var = as.name(i_var))
+  mutate_call <- lazyeval::interp(~ ifelse(!is.na(i_var), i_var - varmean, NA), i_var = as.name(i_var))
   i_data <- i_data %>% mutate_(.dots = setNames(list(mutate_call), i_var))
   
   # Remove variable mean
