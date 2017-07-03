@@ -1,4 +1,4 @@
-data_aggregateVar <- function(i_data, i_vars) {
+data_aggregateVar <- function(i_data, i_vars, VERBOSE=TRUE) {
   out <- i_data
   
   for (kv in names(i_vars)) {
@@ -7,7 +7,7 @@ data_aggregateVar <- function(i_data, i_vars) {
     tmp2 <- out %>% 
       filter(variable %in% i_vars[[kv]])
     
-    if (length(unique(tmp2$unit)) != 1) cat("Warning: units are not consistent across the selected variables.\n")
+    if (length(unique(tmp2$unit)) != 1 && VERBOSE) cat("Warning: units are not consistent across the selected variables.\n")
     
     tmp_unit = tmp2$unit[1]
     

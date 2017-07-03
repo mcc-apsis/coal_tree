@@ -10,32 +10,27 @@ data_aggregateVarDef <- function(i_dataDef, i_vars) {
     if (dim(tmp2)[1] != 0) {
     
       if (length(unique(tmp2$factor)) != 1) {
-        cat("Error: variable factor is not consistent across the selected variables.\n")
-        stop()
+        stop("Variable factor is not consistent across the selected variables.")
       }
       tmp_factor = tmp2$factor[1]
           
       if (length(unique(tmp2$type)) != 1) {
-        cat("Error: variable type is not consistent across the selected variables.\n")
-        stop()
+        stop("Variable type is not consistent across the selected variables.")
       }
       tmp_type = tmp2$type[1]
       
       if (length(unique(tmp2$transform)) != 1) {
-        cat("Error: variable transformation is not consistent across the selected variables.\n")
-        stop()
+        stop("Variable type is not consistent across the selected variables.")
       }
       tmp_transform = tmp2$transform[1]
       
       if (length(unique(tmp2$demean)) != 1) {
-        cat("Error: variable transformation is not consistent across the selected variables.\n")
-        stop()
+        stop("Variable type is not consistent across the selected variables.")
       }
       tmp_demean = tmp2$demean[1]
       
       if (length(unique(tmp2$firstdiff)) != 1) {
-        cat("Error: variable transformation is not consistent across the selected variables.\n")
-        stop()
+        stop("Variable type is not consistent across the selected variables.")
       }
       tmp_firstdiff = tmp2$firstdiff[1]
       

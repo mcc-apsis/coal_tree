@@ -1,3 +1,5 @@
+u_verbose = TRUE
+
 #---- Files and directories ---------
 u_path      <- list()
 u_path$data <- "data/coal_data.RData"
@@ -17,8 +19,11 @@ u_dummy_var    <- c("E_CE")
 u_aggreg_var   <- list(
   "E_RenC" = c("E_BC", "E_HC", "E_RC", "E_GeoC"))
 u_compute_var  <- list(
-  "E_CC/GDP" = c("E_CCGDP~E_CC/GDP"),
-  "E_CC/P"   = c("E_CCP~E_CC/P")
+  "E_CC/GDP"  = c("E_CCGDP~E_CC/GDP"),
+  "E_CP/GDP"  = c("E_CPGDP~E_CP/GDP"),
+  "E_CIm/GDP" = c("E_CImGDP~E_CIm/GDP"),
+  "E_CEx/GDP" = c("E_CExGDP~E_CEx/GDP"),
+  "E_CC/P"    = c("E_CCP~E_CC/P")
 )
 
 #---- Variable selection ------------

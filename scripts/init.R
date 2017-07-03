@@ -1,17 +1,23 @@
 if (u_mode == "knitr") u_path <- lapply(u_path, function(x) file.path("..", x))
+if (u_mode == "shinypres") u_verbose = FALSE
 
 #---- Load libraries ------
-library(RColorBrewer)
-library(guidr)
-library(igraph)
-library(dplyr)
-library(tidyr)
-library(magrittr)
-library(ggplot2)
-library(scatterpie)
+suppressMessages(library(RColorBrewer))
+suppressMessages(library(readxl))
+suppressMessages(library(guidr))
+suppressMessages(library(igraph))
+suppressMessages(library(dplyr))
+suppressMessages(library(tidyr))
+suppressMessages(library(magrittr))
+suppressMessages(library(ggplot2))
+suppressMessages(library(plotly))
+suppressMessages(library(scatterpie))
+if (as.logical(Sys.info()["sysname"] == "Linux"))   suppressMessages(library(doMC))        # Linux library to distribute tasks to CPUs
+if (as.logical(Sys.info()["sysname"] == "Windows")) suppressMessages(library(doSNOW))      # Windows library to distribute tasks to CPUs
+suppressMessages(library(foreach))      # Library to enable parallelisation of tasks
 if (u_mode == "knitr") {
-  library(corrplot)
-  library(GGally)
+  suppressMessages(library(corrplot))
+  suppressMessages(library(GGally))
 }
 
 #---- Load functions ------

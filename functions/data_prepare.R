@@ -108,8 +108,12 @@ transformVariable <- function(i_data, i_vardef, VERBOSE=FALSE) {
     # Logarithm
     if (i_vardef$transform[which(i_vardef$variable == kvar)] == "log") {
       if (VERBOSE) cat("    - ", kvar, " <- log(", kvar, ")\n")
+      # Save 0s
+      id_zeros <- which(i_data[,kvar] == 0)
       # Apply transformation
       i_data[,kvar] <- log(i_data[,kvar])
+      # Restore 0s
+      i_data[id_zeros,kvar] <- 0
       # Switch infinite values to NAs
       i_data[which(is.infinite(i_data[,kvar])),kvar] <- NA
     }

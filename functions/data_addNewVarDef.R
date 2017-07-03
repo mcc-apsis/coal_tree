@@ -1,6 +1,6 @@
 data_addNewVarDef <- function(varDef, formulas, newUnit = "None", newLongname = "Unspecified", newSource = "Own",
                            variable = "variable", 
-                           value = "value") {
+                           value = "value", VERBOSE=u_verbose) {
   
   out <- varDef
   
@@ -25,31 +25,28 @@ data_addNewVarDef <- function(varDef, formulas, newUnit = "None", newLongname = 
     tmp2 <- out %>% 
       filter(variable %in% .dots.names)
 
-    if (length(unique(tmp2$factor)) != 1) {
+    if (length(unique(tmp2$factor)) != 1 && VERBOSE) {
       cat("Warning: variable factor is not consistent across the selected variables.\n")
     }
     tmp_factor = tmp2$factor[1]
     
-    if (length(unique(tmp2$type)) != 1) {
+    if (length(unique(tmp2$type)) != 1 && VERBOSE) {
       cat("Warning: variable type is not consistent across the selected variables.\n")
     }
     tmp_type = "n"
     
     if (length(unique(tmp2$transform)) != 1) {
-      cat("Error: variable transformation is not consistent across the selected variables.\n")
-      stop()
+      stop("Variable transformation is not consistent across the selected variables.\n")
     }
     tmp_transform = tmp2$transform[1]
     
     if (length(unique(tmp2$demean)) != 1) {
-      cat("Error: variable transformation is not consistent across the selected variables.\n")
-      stop()
+      stop("Variable transformation is not consistent across the selected variables.\n")
     }
     tmp_demean = tmp2$demean[1]
     
     if (length(unique(tmp2$firstdiff)) != 1) {
-      cat("Error: variable transformation is not consistent across the selected variables.\n")
-      stop()
+      stop("Variable transformation is not consistent across the selected variables.\n")
     }
     tmp_firstdiff = tmp2$firstdiff[1]
     
